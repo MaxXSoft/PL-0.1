@@ -8,7 +8,7 @@ namespace {
 const char *keywords[] = {
     "const", "var", "procedure", "function", "call", "begin", "end",
     "if", "then", "else", "while", "do", "break", "continue",
-    "odd", "read", "write"
+    "odd", "asm"
 };
 
 const char *operators[] = {

@@ -15,7 +15,7 @@ public:
     enum class Keyword {
         Const, Var, Procedure, Function, Call, Begin, End,
         If, Then, Else, While, Do, Break, Continue,
-        Odd, Read, Write
+        Odd, Asm
     };
 
     enum class Operator {
