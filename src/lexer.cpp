@@ -14,7 +14,7 @@ const char *keywords[] = {
 const char *operators[] = {
     "+", "-", "*", "/",
     "<", "<=", ">", ">=",
-    "#", "=", ":="
+    "<>", "=", ":="
 };
 
 template <typename T>
@@ -27,7 +27,7 @@ int GetIndex(const char *str, T &str_array) {
 }
 
 bool IsOperatorChar(char c) {
-    const char op_chars[] = "+-*/<=>#:";
+    const char op_chars[] = "+-*/<=>:";
     for (const auto &i : op_chars) {
         if (i == c) return true;
     }
