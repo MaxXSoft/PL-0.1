@@ -3,7 +3,7 @@
 
 /*
 
-EBNF for PL/0.1
+EBNF of PL/0.1
 
 program     ::= block ".";
 block       ::= [constants] [variables] {procedure | function} statement;
