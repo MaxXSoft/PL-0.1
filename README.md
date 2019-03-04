@@ -11,8 +11,7 @@ constants   ::= "const" id "=" expression {"," id "=" expression} ";";
 variables   ::= "var" id ["=" expression] {"," id ["=" expression]} ";";
 procedure   ::= "procedure" id ";" block ";";
 function    ::= "function" id ["(" id {"," id} ")"] ";" block ";";
-statement   ::= [assign | call | beginend | if | while
-                | asm | control | null];
+statement   ::= [assign | call | beginend | if | while | asm | control | null];
 assign      ::= id ":=" expression;
 call        ::= "call" id;
 beginend    ::= "begin" statement {";" statement} "end";
