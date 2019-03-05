@@ -1,14 +1,14 @@
 #include <define/symbol.h>
 
-SymbolType Environment::GetType(const std::string &id) {
+SymbolInfo Environment::GetInfo(const std::string &id) {
     auto it = symbols_.find(id);
     if (it != symbols_.end()) {
-        return it->second.type;
+        return it->second;
     }
     else if (outer_) {
-        return outer_->GetType(id);
+        return outer_->GetInfo(id);
     }
     else {
-        return SymbolType::Error;
+        return {SymbolType::Error, 0};
     }
 }

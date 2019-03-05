@@ -4,9 +4,14 @@
 #include <memory>
 #include <string>
 #include <map>
+#include <cstdint>
 
 #include <define/type.h>
-#include <define/funchand.h>
+
+struct SymbolInfo {
+    SymbolType type;
+    size_t func_arg_count;
+};
 
 class Environment;
 using EnvPtr = std::shared_ptr<Environment>;
@@ -16,32 +21,17 @@ public:
     Environment() : outer_(nullptr) {}
     Environment(const EnvPtr &outer) : outer_(outer) {}
 
-    void AddSymbol(const std::string &id, SymbolType type) {
-        symbols_.insert({id, {type, 0}});
+    void AddSymbol(const std::string &id, SymbolInfo info) {
+        symbols_.insert({id, info});
     }
-    void AddFunction(const std::string &id, const FunctionHandler &func) {
-        symbols_.insert({id, {SymbolType::Func, func}});
-    }
-    SymbolType GetType(const std::string &id);
+    SymbolInfo GetInfo(const std::string &id);
 
     const EnvPtr &outer() const { return outer_; }
     bool is_root() const { return outer_ == nullptr; }
 
 private:
-    struct SymbolInfo {
-        SymbolType type;
-        union SymbolValue {
-            SymbolValue(int value) : i(value) {}
-            SymbolValue(const FunctionHandler &value) : f(value) {}
-            int i;
-            FunctionHandler f;
-        } value;
-    };
-
-    using SymbolTable = std::map<std::string, SymbolInfo>;
-
     EnvPtr outer_;
-    SymbolTable symbols_;
+    std::map<std::string, SymbolInfo> symbols_;
 };
 
 #endif // PL01_DEFINE_SYMBOL_H_
