@@ -24,7 +24,7 @@ class BlockAST : public BaseAST {
 public:
     BlockAST(ASTPtr consts, ASTPtr vars, ASTPtrList proc_func, ASTPtr stat)
             : consts_(std::move(consts)), vars_(std::move(vars)),
-              proc_func_(std::move(proc_func)), stat_(std::move(stat)) {}
+              stat_(std::move(stat)), proc_func_(std::move(proc_func)) {}
 
 private:
     ASTPtr consts_, vars_, stat_;

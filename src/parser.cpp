@@ -169,6 +169,7 @@ ASTPtr Parser::ParseStatement() {
                 case Keyword::Asm: return ParseAsm();
                 case Keyword::Break:
                 case Keyword::Continue: return ParseControl();
+                default: return nullptr;
             }
         }
         default: return nullptr;
