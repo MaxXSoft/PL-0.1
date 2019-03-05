@@ -30,6 +30,11 @@ public:
     }
 
     Token NextToken();
+    void Reset() {
+        line_pos_ = 1;
+        error_num_ = 0;
+        last_char_ = ' ';
+    }
 
     unsigned int line_pos() const { return line_pos_; }
     unsigned int error_num() const { return error_num_; }
