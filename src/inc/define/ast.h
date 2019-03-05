@@ -5,8 +5,8 @@
 #include <utility>
 #include <string>
 #include <vector>
-#include <map>
 
+#include <define/type.h>
 #include <front/lexer.h>
 #include <front/analyzer.h>
 #include <define/symbol.h>
@@ -33,7 +33,6 @@ using ASTPtr = std::unique_ptr<BaseAST>;
 using ASTPtrList = std::vector<ASTPtr>;
 using VarDef = std::pair<std::string, ASTPtr>;
 using VarDefList = std::vector<VarDef>;
-using IdList = std::vector<std::string>;
 
 class BlockAST : public BaseAST {
 public:
