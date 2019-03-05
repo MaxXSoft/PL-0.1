@@ -45,6 +45,12 @@ public:
 
     ASTPtr ParseProgram();
 
+    void Reset() {
+        lexer_.Reset();
+        error_num_ = 0;
+        NextToken();
+    }
+
     unsigned int error_num() const { return error_num_; }
 
 private:
