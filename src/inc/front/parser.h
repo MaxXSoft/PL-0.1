@@ -1,5 +1,5 @@
-#ifndef PL01_PARSER_H_
-#define PL01_PARSER_H_
+#ifndef PL01_FRONT_PARSER_H_
+#define PL01_FRONT_PARSER_H_
 
 /*
 
@@ -34,7 +34,7 @@ muldiv      ::= "*" | "/";
 
 */
 
-#include <lexer.h>
+#include <front/lexer.h>
 #include <ast.h>
 
 class Parser {
@@ -112,4 +112,4 @@ private:
     Token cur_token_;
 };
 
-#endif // PL01_PARSER_H_
+#endif // PL01_FRONT_PARSER_H_

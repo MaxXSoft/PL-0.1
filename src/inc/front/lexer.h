@@ -1,5 +1,5 @@
-#ifndef PL01_LEXER_H_
-#define PL01_LEXER_H_
+#ifndef PL01_FRONT_LEXER_H_
+#define PL01_FRONT_LEXER_H_
 
 #include <istream>
 #include <string>
@@ -66,4 +66,4 @@ private:
     char char_val_;
 };
 
-#endif // PL01_LEXER_H_
+#endif // PL01_FRONT_LEXER_H_

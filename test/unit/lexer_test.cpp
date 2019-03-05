@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include <lexer.h>
+#include <front/lexer.h>
 #include <unit/util.h>
 
 using namespace std;
