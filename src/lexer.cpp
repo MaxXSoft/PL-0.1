@@ -6,7 +6,7 @@
 namespace {
 
 const char *keywords[] = {
-    "const", "var", "procedure", "function", "call", "begin", "end",
+    "const", "var", "procedure", "function", "begin", "end",
     "if", "then", "else", "while", "do", "break", "continue",
     "odd", "asm"
 };

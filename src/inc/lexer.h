@@ -13,7 +13,7 @@ public:
     };
 
     enum class Keyword {
-        Const, Var, Procedure, Function, Call, Begin, End,
+        Const, Var, Procedure, Function, Begin, End,
         If, Then, Else, While, Do, Break, Continue,
         Odd, Asm
     };
