@@ -1,6 +1,6 @@
 #include <test.h>
 
-#define ALL_TESTS(f) f(LexerTest)
+#define ALL_TESTS(f) f(LexerTest) f(ParserTest)
 
 // expand function declarations & unit test array
 UNIT_TEST(ALL_TESTS, unit_test);
