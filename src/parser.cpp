@@ -6,7 +6,7 @@
 namespace {
 
 const char *keywords[] = {
-    "const", "var", "procedure", "function", "call", "begin", "end",
+    "const", "var", "procedure", "function", "begin", "end",
     "if", "then", "else", "while", "do", "break", "continue",
     "odd", "asm"
 };
@@ -142,6 +142,7 @@ ASTPtr Parser::ParseFunction() {
             NextToken();
         } while (IsTokenChar(','));
         if (!IsTokenChar(')')) return PrintError("')' required");
+        NextToken();
     }
     // check ';'
     if (!IsTokenChar(';')) return PrintError("';' required");
@@ -159,10 +160,9 @@ ASTPtr Parser::ParseFunction() {
 // NOTE: return value is NULLABLE
 ASTPtr Parser::ParseStatement() {
     switch (cur_token_) {
-        case Token::Id: return ParseAssign();
+        case Token::Id: return ParseIdStat();
         case Token::Keyword: {
             switch (lexer_.key_val()) {
-                case Keyword::Call: return ParseCall();
                 case Keyword::Begin: return ParseBeginEnd();
                 case Keyword::If: return ParseIf();
                 case Keyword::While: return ParseWhile();
@@ -176,35 +176,53 @@ ASTPtr Parser::ParseStatement() {
     }
 }
 
-ASTPtr Parser::ParseAssign() {
+ASTPtr Parser::ParseIdStat() {
     // get identifier
     auto id = lexer_.id_val();
     NextToken();
-    // check ':='
-    if (!IsTokenOperator(Operator::Assign)) {
-        return PrintError("':=' required");
+    // check next token
+    if (IsTokenOperator(Operator::Assign)) {
+        // assign statement
+        NextToken();
+        // get expression
+        auto expr = ParseExpression();
+        if (error_num_) return nullptr;
+        return std::make_unique<AssignAST>(id, std::move(expr));
     }
-    NextToken();
-    // get expression
-    auto expr = ParseExpression();
-    if (error_num_) return nullptr;
-    return std::make_unique<AssignAST>(id, std::move(expr));
+    else if (IsTokenChar('(')) {
+        // function call
+        auto funcall = ParseFunCall(id);
+        if (error_num_) return nullptr;
+        return funcall;
+    }
+    else {
+        // just identifier
+        return std::make_unique<IdAST>(id);
+    }
 }
 
-ASTPtr Parser::ParseCall() {
-    // get procedure id
-    if (NextToken() != Token::Id) return PrintError("identifier required");
-    auto id = lexer_.id_val();
+ASTPtr Parser::ParseFunCall(const std::string &id) {
+    ASTPtrList args;
+    // get argument list
+    do {
+        NextToken();
+        auto expr = ParseExpression();
+        if (error_num_) return nullptr;
+        args.push_back(std::move(expr));
+    } while (IsTokenChar(','));
+    // check ')'
+    if (!IsTokenChar(')')) {
+        return PrintError("')' required in function call");
+    }
     NextToken();
-    return std::make_unique<CallAST>(id);
+    return std::make_unique<FunCallAST>(id, std::move(args));
 }
 
 ASTPtr Parser::ParseBeginEnd() {
     ASTPtrList stats;
-    // eat 'begin'
-    NextToken();
     // get statement list
     do {
+        NextToken();
         auto stat = ParseStatement();
         if (error_num_) return nullptr;
         if (stat) stats.push_back(std::move(stat));
@@ -382,27 +400,19 @@ ASTPtr Parser::ParseFactor() {
             NextToken();
             if (IsTokenChar('(')) {
                 // function call
-                ASTPtrList args;
-                do {
-                    NextToken();
-                    auto expr = ParseExpression();
-                    if (error_num_) return nullptr;
-                    args.push_back(std::move(expr));
-                } while (IsTokenChar(','));
-                // check ')'
-                if (!IsTokenChar(')')) {
-                    return PrintError("')' required in function call");
-                }
-                NextToken();
-                return std::make_unique<FunCallAST>(id, std::move(args));
+                auto funcall = ParseFunCall(id);
+                if (error_num_) return nullptr;
+                return funcall;
             }
             else {
                 // just identifier
-                return std::make_unique<IdAST>(lexer_.id_val());
+                return std::make_unique<IdAST>(id);
             }
         }
         case Token::Num: {
-            return std::make_unique<NumberAST>(lexer_.num_val());
+            auto value = lexer_.num_val();
+            NextToken();
+            return std::make_unique<NumberAST>(value);
         }
         default: {
             if (IsTokenChar('(')) {
