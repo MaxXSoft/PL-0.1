@@ -14,8 +14,8 @@ const char *keywords[] = {
 } // namespace
 
 ASTPtr Parser::PrintError(const char *message) {
-    std::cerr << "parser (line " << lexer_.line_pos();
-    std::cerr << "): error: " << message << std::endl;
+    std::cerr << "\033[1mparser\033[0m (line " << lexer_.line_pos();
+    std::cerr << "): \033[31m\033[1merror\033[0m: " << message << std::endl;
     ++error_num_;
     return nullptr;
 }

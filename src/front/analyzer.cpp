@@ -16,16 +16,17 @@ inline bool IsConstOrVar(SymbolType type) {
 
 SymbolType Analyzer::PrintError(const char *message,
         unsigned int line_pos) {
-    std::cerr << "analyzer (line " << line_pos;
-    std::cerr << "): error: " << message << std::endl;
+    std::cerr << "\033[1manalyzer\033[0m (line " << line_pos;
+    std::cerr << "): \033[31m\033[1merror\033[0m: " << message << std::endl;
     ++error_num_;
     return SymbolType::Error;
 }
 
 SymbolType Analyzer::PrintError(const char *message, const char *id,
         unsigned int line_pos) {
-    std::cerr << "analyzer (line " << line_pos;
-    std::cerr << ", id: " << id << "): error: " << message << std::endl;
+    std::cerr << "\033[1manalyzer\033[0m (line " << line_pos;
+    std::cerr << ", id: " << id << "): \033[31m\033[1merror\033[0m: ";
+    std::cerr << message << std::endl;
     ++error_num_;
     return SymbolType::Error;
 }

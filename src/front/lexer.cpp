@@ -37,8 +37,8 @@ bool IsOperatorChar(char c) {
 } // namespace
 
 Lexer::Token Lexer::PrintError(const char *message) {
-    std::cerr << "lexer (line " << line_pos_;
-    std::cerr << "): error: " << message << std::endl;
+    std::cerr << "\033[1mlexer\033[0m (line " << line_pos_;
+    std::cerr << "): \033[31m\033[1merror\033[0m: " << message << std::endl;
     ++error_num_;
     return Token::Error;
 }
