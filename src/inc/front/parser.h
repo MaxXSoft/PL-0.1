@@ -35,7 +35,7 @@ muldiv      ::= "*" | "/";
 */
 
 #include <front/lexer.h>
-#include <ast.h>
+#include <define/ast.h>
 
 class Parser {
 public:

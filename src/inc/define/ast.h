@@ -1,5 +1,5 @@
-#ifndef PL01_AST_H_
-#define PL01_AST_H_
+#ifndef PL01_DEFINE_AST_H_
+#define PL01_DEFINE_AST_H_
 
 #include <memory>
 #include <utility>
@@ -8,10 +8,15 @@
 #include <map>
 
 #include <front/lexer.h>
+#include <front/analyzer.h>
 
 class BaseAST {
 public:
     virtual ~BaseAST() = default;
+
+    virtual bool SemaAnalyze(Analyzer &ana) = 0;
+
+    //
 };
 
 using ASTPtr = std::unique_ptr<BaseAST>;
@@ -176,4 +181,4 @@ private:
     int value_;
 };
 
-#endif // PL01_AST_H_
+#endif // PL01_DEFINE_AST_H_
