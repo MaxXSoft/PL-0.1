@@ -47,4 +47,16 @@ void LexerTest() {
     TEST_EXPECT(EnumCast(Token::End), EnumCast(lexer.NextToken()));
     TEST_EXPECT(0U, lexer.error_num());
     TEST_EXPECT(3U, lexer.line_pos());
+    iss.str("0ea");
+    iss.clear();
+    lexer.Reset();
+    TEST_EXPECT(EnumCast(Token::Error), EnumCast(lexer.NextToken()));
+    iss.str("0123");
+    iss.clear();
+    lexer.Reset();
+    TEST_EXPECT(EnumCast(Token::Error), EnumCast(lexer.NextToken()));
+    iss.str("::=");
+    iss.clear();
+    lexer.Reset();
+    TEST_EXPECT(EnumCast(Token::Error), EnumCast(lexer.NextToken()));
 }
