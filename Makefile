@@ -24,6 +24,7 @@ LIBRARY_ARG :=
 
 # files
 PL01_OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(PL01_OBJ_DIR)/%.o, $(wildcard $(SRC_DIR)/*.cpp))
+PL01_OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(PL01_OBJ_DIR)/%.o, $(wildcard $(SRC_DIR)/**/*.cpp))
 TEST_OBJS := $(patsubst $(TEST_DIR)/%.cpp, $(TEST_OBJ_DIR)/%.o, $(wildcard $(TEST_DIR)/*.cpp))
 TEST_OBJS += $(patsubst $(TEST_DIR)/%.cpp, $(TEST_OBJ_DIR)/%.o, $(wildcard $(TEST_DIR)/**/*.cpp))
 TEST_OBJS += $(filter-out $(PL01_OBJ_DIR)/main.o, $(PL01_OBJS))
