@@ -9,14 +9,24 @@
 
 #include <front/lexer.h>
 #include <front/analyzer.h>
+#include <define/symbol.h>
 
 class BaseAST {
 public:
     virtual ~BaseAST() = default;
 
-    virtual bool SemaAnalyze(Analyzer &ana) = 0;
+    virtual SymbolType SemaAnalyze(Analyzer &ana) = 0;
 
-    //
+    unsigned int line_pos() const { return line_pos_; }
+    const EnvPtr &env() const { return env_; }
+
+protected:
+    void set_line_pos(unsigned int line_pos) { line_pos_ = line_pos; }
+    void set_env(const EnvPtr &env) { env_ = env; }
+
+private:
+    unsigned int line_pos_;
+    EnvPtr env_;
 };
 
 using ASTPtr = std::unique_ptr<BaseAST>;
@@ -27,9 +37,14 @@ using IdList = std::vector<std::string>;
 
 class BlockAST : public BaseAST {
 public:
-    BlockAST(ASTPtr consts, ASTPtr vars, ASTPtrList proc_func, ASTPtr stat)
+    BlockAST(ASTPtr consts, ASTPtr vars, ASTPtrList proc_func,
+            ASTPtr stat, unsigned int line_pos)
             : consts_(std::move(consts)), vars_(std::move(vars)),
-              stat_(std::move(stat)), proc_func_(std::move(proc_func)) {}
+              stat_(std::move(stat)), proc_func_(std::move(proc_func)) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     ASTPtr consts_, vars_, stat_;
@@ -38,7 +53,12 @@ private:
 
 class ConstsAST : public BaseAST {
 public:
-    ConstsAST(VarDefList defs) : defs_(std::move(defs)) {}
+    ConstsAST(VarDefList defs, unsigned int line_pos)
+            : defs_(std::move(defs)) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     VarDefList defs_;
@@ -46,7 +66,12 @@ private:
 
 class VarsAST : public BaseAST {
 public:
-    VarsAST(VarDefList defs) : defs_(std::move(defs)) {}
+    VarsAST(VarDefList defs, unsigned int line_pos)
+            : defs_(std::move(defs)) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     VarDefList defs_;
@@ -54,8 +79,13 @@ private:
 
 class ProcedureAST : public BaseAST {
 public:
-    ProcedureAST(const std::string &id, ASTPtr block)
-            : id_(id), block_(std::move(block)) {}
+    ProcedureAST(const std::string &id, ASTPtr block,
+            unsigned int line_pos)
+            : id_(id), block_(std::move(block)) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     std::string id_;
@@ -64,9 +94,14 @@ private:
 
 class FunctionAST : public BaseAST {
 public:
-    FunctionAST(const std::string &id, IdList args, ASTPtr block)
+    FunctionAST(const std::string &id, IdList args,
+            ASTPtr block, unsigned int line_pos)
             : id_(id), args_(std::move(args)),
-              block_(std::move(block)) {}
+              block_(std::move(block)) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     std::string id_;
@@ -76,25 +111,26 @@ private:
 
 class AssignAST : public BaseAST {
 public:
-    AssignAST(const std::string &id, ASTPtr expr)
-            : id_(id), expr_(std::move(expr)) {}
+    AssignAST(const std::string &id, ASTPtr expr, unsigned int line_pos)
+            : id_(id), expr_(std::move(expr)) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     std::string id_;
     ASTPtr expr_;
 };
 
-class CallAST : public BaseAST {
-public:
-    CallAST(const std::string &id) : id_(id) {}
-
-private:
-    std::string id_;
-};
-
 class BeginEndAST: public BaseAST {
 public:
-    BeginEndAST(ASTPtrList stats) : stats_(std::move(stats)) {}
+    BeginEndAST(ASTPtrList stats, unsigned int line_pos)
+            : stats_(std::move(stats)) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     ASTPtrList stats_;
@@ -102,9 +138,14 @@ private:
 
 class IfAST : public BaseAST {
 public:
-    IfAST(ASTPtr cond, ASTPtr then, ASTPtr else_then)
+    IfAST(ASTPtr cond, ASTPtr then, ASTPtr else_then,
+            unsigned int line_pos)
             : cond_(std::move(cond)), then_(std::move(then)),
-              else_then_(std::move(else_then)) {}
+              else_then_(std::move(else_then)) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     ASTPtr cond_, then_, else_then_;
@@ -112,8 +153,12 @@ private:
 
 class WhileAST : public BaseAST {
 public:
-    WhileAST(ASTPtr cond, ASTPtr body)
-            : cond_(std::move(cond)), body_(std::move(body)) {}
+    WhileAST(ASTPtr cond, ASTPtr body, unsigned int line_pos)
+            : cond_(std::move(cond)), body_(std::move(body)) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     ASTPtr cond_, body_;
@@ -121,7 +166,12 @@ private:
 
 class AsmAST : public BaseAST {
 public:
-    AsmAST(const std::string &asm_str) : asm_str_(asm_str) {}
+    AsmAST(const std::string &asm_str, unsigned int line_pos)
+            : asm_str_(asm_str) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     std::string asm_str_;
@@ -129,7 +179,11 @@ private:
 
 class ControlAST : public BaseAST {
 public:
-    ControlAST(Lexer::Keyword type) : type_(type) {}
+    ControlAST(Lexer::Keyword type, unsigned int line_pos) : type_(type) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     Lexer::Keyword type_;
@@ -137,8 +191,12 @@ private:
 
 class UnaryAST : public BaseAST {
 public:
-    UnaryAST(Lexer::Keyword op, ASTPtr operand)
-            : op_(op), operand_(std::move(operand)) {}
+    UnaryAST(Lexer::Keyword op, ASTPtr operand, unsigned int line_pos)
+            : op_(op), operand_(std::move(operand)) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     Lexer::Keyword op_;     // 'odd' only
@@ -147,8 +205,13 @@ private:
 
 class BinaryAST : public BaseAST {
 public:
-    BinaryAST(Lexer::Operator op, ASTPtr lhs, ASTPtr rhs)
-            : op_(op), lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
+    BinaryAST(Lexer::Operator op, ASTPtr lhs, ASTPtr rhs,
+            unsigned int line_pos)
+            : op_(op), lhs_(std::move(lhs)), rhs_(std::move(rhs)) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     Lexer::Operator op_;
@@ -157,8 +220,13 @@ private:
 
 class FunCallAST : public BaseAST {
 public:
-    FunCallAST(const std::string &id, ASTPtrList args)
-            : id_(id), args_(std::move(args)) {}
+    FunCallAST(const std::string &id, ASTPtrList args,
+            unsigned int line_pos)
+            : id_(id), args_(std::move(args)) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     std::string id_;
@@ -167,7 +235,11 @@ private:
 
 class IdAST : public BaseAST {
 public:
-    IdAST(const std::string &id) : id_(id) {}
+    IdAST(const std::string &id, unsigned int line_pos) : id_(id) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     std::string id_;
@@ -175,7 +247,11 @@ private:
 
 class NumberAST : public BaseAST {
 public:
-    NumberAST(int value) : value_(value) {}
+    NumberAST(int value, unsigned int line_pos) : value_(value) {
+        set_line_pos(line_pos);
+    }
+
+    SymbolType SemaAnalyze(Analyzer &ana) override;
 
 private:
     int value_;
