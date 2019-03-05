@@ -54,8 +54,8 @@ ASTPtr Parser::ParseBlock() {
     // parse statements
     stat = ParseStatement();
     if (error_num_) return nullptr;
-    return std::make_unique<BlockAST>(std::move(consts),
-            std::move(vars), std::move(proc_func), std::move(stat));
+    return std::make_unique<BlockAST>(std::move(consts), std::move(vars),
+            std::move(proc_func), std::move(stat), lexer_.line_pos());
 }
 
 ASTPtr Parser::ParseConstants() {
@@ -81,7 +81,7 @@ ASTPtr Parser::ParseConstants() {
     // check ';'
     if (!IsTokenChar(';')) return PrintError("';' required");
     NextToken();
-    return std::make_unique<ConstsAST>(std::move(defs));
+    return std::make_unique<ConstsAST>(std::move(defs), lexer_.line_pos());
 }
 
 ASTPtr Parser::ParseVariables() {
@@ -106,7 +106,7 @@ ASTPtr Parser::ParseVariables() {
     // check ';'
     if (!IsTokenChar(';')) return PrintError("';' required");
     NextToken();
-    return std::make_unique<VarsAST>(std::move(defs));
+    return std::make_unique<VarsAST>(std::move(defs), lexer_.line_pos());
 }
 
 ASTPtr Parser::ParseProcedure() {
@@ -123,7 +123,8 @@ ASTPtr Parser::ParseProcedure() {
     // check ';'
     if (!IsTokenChar(';')) return PrintError("';' required");
     NextToken();
-    return std::make_unique<ProcedureAST>(id, std::move(block));
+    return std::make_unique<ProcedureAST>(id,
+            std::move(block), lexer_.line_pos());
 }
 
 ASTPtr Parser::ParseFunction() {
@@ -153,8 +154,8 @@ ASTPtr Parser::ParseFunction() {
     // check ';'
     if (!IsTokenChar(';')) return PrintError("';' required");
     NextToken();
-    return std::make_unique<FunctionAST>(id,
-            std::move(args), std::move(block));
+    return std::make_unique<FunctionAST>(id, std::move(args),
+            std::move(block), lexer_.line_pos());
 }
 
 // NOTE: return value is NULLABLE
@@ -187,7 +188,8 @@ ASTPtr Parser::ParseIdStat() {
         // get expression
         auto expr = ParseExpression();
         if (error_num_) return nullptr;
-        return std::make_unique<AssignAST>(id, std::move(expr));
+        return std::make_unique<AssignAST>(id,
+                std::move(expr), lexer_.line_pos());
     }
     else if (IsTokenChar('(')) {
         // function call
@@ -197,7 +199,7 @@ ASTPtr Parser::ParseIdStat() {
     }
     else {
         // just identifier
-        return std::make_unique<IdAST>(id);
+        return std::make_unique<IdAST>(id, lexer_.line_pos());
     }
 }
 
@@ -215,7 +217,8 @@ ASTPtr Parser::ParseFunCall(const std::string &id) {
         return PrintError("')' required in function call");
     }
     NextToken();
-    return std::make_unique<FunCallAST>(id, std::move(args));
+    return std::make_unique<FunCallAST>(id,
+            std::move(args), lexer_.line_pos());
 }
 
 ASTPtr Parser::ParseBeginEnd() {
@@ -230,7 +233,8 @@ ASTPtr Parser::ParseBeginEnd() {
     // check 'end'
     if (!IsTokenKeyword(Keyword::End)) return PrintError("'end' required");
     NextToken();
-    return std::make_unique<BeginEndAST>(std::move(stats));
+    return std::make_unique<BeginEndAST>(std::move(stats),
+            lexer_.line_pos());
 }
 
 ASTPtr Parser::ParseIf() {
@@ -254,8 +258,8 @@ ASTPtr Parser::ParseIf() {
         else_then = ParseStatement();
         if (error_num_) return nullptr;
     }
-    return std::make_unique<IfAST>(std::move(cond),
-            std::move(then), std::move(else_then));
+    return std::make_unique<IfAST>(std::move(cond), std::move(then),
+            std::move(else_then), lexer_.line_pos());
 }
 
 ASTPtr Parser::ParseWhile() {
@@ -270,7 +274,8 @@ ASTPtr Parser::ParseWhile() {
     // get body
     auto body = ParseStatement();
     if (error_num_) return nullptr;
-    return std::make_unique<WhileAST>(std::move(cond), std::move(body));
+    return std::make_unique<WhileAST>(std::move(cond),
+            std::move(body), lexer_.line_pos());
 }
 
 ASTPtr Parser::ParseAsm() {
@@ -316,13 +321,13 @@ ASTPtr Parser::ParseAsm() {
     // eat 'end'
     oss << std::endl;
     NextToken();
-    return std::make_unique<AsmAST>(oss.str());
+    return std::make_unique<AsmAST>(oss.str(), lexer_.line_pos());
 }
 
 ASTPtr Parser::ParseControl() {
     auto type = lexer_.key_val();
     NextToken();
-    return std::make_unique<ControlAST>(type);
+    return std::make_unique<ControlAST>(type, lexer_.line_pos());
 }
 
 ASTPtr Parser::ParseCondition() {
@@ -331,7 +336,8 @@ ASTPtr Parser::ParseCondition() {
         NextToken();
         auto expr = ParseExpression();
         if (error_num_) return nullptr;
-        return std::make_unique<UnaryAST>(Keyword::Odd, std::move(expr));
+        return std::make_unique<UnaryAST>(Keyword::Odd,
+                std::move(expr), lexer_.line_pos());
     }
     else {
         // get relational expression
@@ -345,7 +351,7 @@ ASTPtr Parser::ParseCondition() {
         auto rhs = ParseExpression();
         if (error_num_) return nullptr;
         return std::make_unique<BinaryAST>(op,
-                std::move(lhs), std::move(rhs));
+                std::move(lhs), std::move(rhs), lexer_.line_pos());
     }
 }
 
@@ -361,9 +367,9 @@ ASTPtr Parser::ParseExpression() {
     auto term = ParseTerm();
     if (error_num_) return nullptr;
     if (has_head_op) {
-        auto zero = std::make_unique<NumberAST>(0);
+        auto zero = std::make_unique<NumberAST>(0, lexer_.line_pos());
         term = std::make_unique<BinaryAST>(op,
-                std::move(zero), std::move(term));
+                std::move(zero), std::move(term), lexer_.line_pos());
     }
     // get rest terms
     while (IsAddSub()) {
@@ -372,7 +378,7 @@ ASTPtr Parser::ParseExpression() {
         auto rhs = ParseTerm();
         if (error_num_) return nullptr;
         term = std::make_unique<BinaryAST>(op,
-                std::move(term), std::move(rhs));
+                std::move(term), std::move(rhs), lexer_.line_pos());
     }
     return term;
 }
@@ -388,7 +394,7 @@ ASTPtr Parser::ParseTerm() {
         auto rhs = ParseFactor();
         if (error_num_) return nullptr;
         factor = std::make_unique<BinaryAST>(op,
-                std::move(factor), std::move(rhs));
+                std::move(factor), std::move(rhs), lexer_.line_pos());
     }
     return factor;
 }
@@ -406,13 +412,13 @@ ASTPtr Parser::ParseFactor() {
             }
             else {
                 // just identifier
-                return std::make_unique<IdAST>(id);
+                return std::make_unique<IdAST>(id, lexer_.line_pos());
             }
         }
         case Token::Num: {
             auto value = lexer_.num_val();
             NextToken();
-            return std::make_unique<NumberAST>(value);
+            return std::make_unique<NumberAST>(value, lexer_.line_pos());
         }
         default: {
             if (IsTokenChar('(')) {
