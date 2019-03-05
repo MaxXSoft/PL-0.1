@@ -5,11 +5,8 @@
 #include <string>
 #include <map>
 
+#include <define/type.h>
 #include <define/funchand.h>
-
-enum class SymbolType {
-    Error, Const, Var, Func, Void
-};
 
 class Environment;
 using EnvPtr = std::shared_ptr<Environment>;
@@ -19,9 +16,13 @@ public:
     Environment() : outer_(nullptr) {}
     Environment(const EnvPtr &outer) : outer_(outer) {}
 
-    void InsertSymbol(const std::string &id,
-            SymbolType type, int value = 0);
-    void AddFunction(const std::string &id, const FunctionHandler &func);
+    void AddSymbol(const std::string &id, SymbolType type) {
+        symbols_.insert({id, {type, 0}});
+    }
+    void AddFunction(const std::string &id, const FunctionHandler &func) {
+        symbols_.insert({id, {SymbolType::Func, func}});
+    }
+    SymbolType GetType(const std::string &id);
 
     const EnvPtr &outer() const { return outer_; }
     bool is_root() const { return outer_ == nullptr; }
@@ -29,7 +30,9 @@ public:
 private:
     struct SymbolInfo {
         SymbolType type;
-        union {
+        union SymbolValue {
+            SymbolValue(int value) : i(value) {}
+            SymbolValue(const FunctionHandler &value) : f(value) {}
             int i;
             FunctionHandler f;
         } value;
