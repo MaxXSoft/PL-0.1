@@ -3,6 +3,9 @@
 
 class FunctionHandler {
 public:
+    FunctionHandler() {}
+
+private:
     //
 };
 
