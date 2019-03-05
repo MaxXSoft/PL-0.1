@@ -15,6 +15,7 @@ public:
 
     SymbolType AnalyzeConst(const std::string &id, SymbolType init,
             unsigned int line_pos);
+    SymbolType AnalyzeVar(const std::string &id, unsigned int line_pos);
     SymbolType AnalyzeVar(const std::string &id, SymbolType init,
             unsigned int line_pos);
     SymbolType AnalyzeProcedure(const std::string &id,
@@ -36,16 +37,16 @@ public:
     void EnterWhile() { ++while_count_; }
     void ExitWhile() { --while_count_; }
 
-    unsigned int error_num() const { return error_num_; }
     const EnvPtr &env() const { return env_; }
+    unsigned int error_num() const { return error_num_; }
 
 private:
     SymbolType PrintError(const char *message, unsigned int line_pos);
     SymbolType PrintError(const char *message, const char *id,
             unsigned int line_pos);
 
-    unsigned int error_num_;
     EnvPtr env_;
+    unsigned int error_num_;
     int while_count_;
 };
 

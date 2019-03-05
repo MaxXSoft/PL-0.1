@@ -44,17 +44,22 @@ SymbolType Analyzer::AnalyzeConst(const std::string &id, SymbolType init,
     return SymbolType::Void;
 }
 
-SymbolType Analyzer::AnalyzeVar(const std::string &id, SymbolType init,
+SymbolType Analyzer::AnalyzeVar(const std::string &id,
         unsigned int line_pos) {
-    if (!IsConstOrVar(init)) {
-        return PrintError("invalid initial value", id.c_str(), line_pos);
-    }
     if (!IsError(env_->GetInfo(id))) {
         return PrintError("identifier has already been defined",
                 id.c_str(), line_pos);
     }
     env_->AddSymbol(id, {SymbolType::Var, 0});
     return SymbolType::Void;
+}
+
+SymbolType Analyzer::AnalyzeVar(const std::string &id, SymbolType init,
+        unsigned int line_pos) {
+    if (!IsConstOrVar(init)) {
+        return PrintError("invalid initial value", id.c_str(), line_pos);
+    }
+    return AnalyzeVar(id, line_pos);
 }
 
 SymbolType Analyzer::AnalyzeProcedure(const std::string &id,
