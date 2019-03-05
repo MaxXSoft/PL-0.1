@@ -79,7 +79,8 @@ Lexer::Token Lexer::HandleNum() {
     char *end_pos;
     num_val_ = std::strtol(num.c_str(), &end_pos, hex ? 16 : 10);
     // check if conversion is valid
-    return *end_pos ? PrintError("invalid number") : Token::Num;
+    return *end_pos || (num[0] == '0' && num.size() > 1) ?
+            PrintError("invalid number") : Token::Num;
 }
 
 Lexer::Token Lexer::HandleOperator() {
