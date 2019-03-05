@@ -5,7 +5,7 @@
 #include <string>
 
 enum class SymbolType {
-    Error, Const, Var, Func, Void
+    Error, Const, Var, Proc, Func, Void
 };
 
 using IdList = std::vector<std::string>;
