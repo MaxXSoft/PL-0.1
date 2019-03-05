@@ -39,10 +39,15 @@ SymbolType ConstsAST::SemaAnalyze(Analyzer &ana) {
 
 SymbolType VarsAST::SemaAnalyze(Analyzer &ana) {
     for (const auto &i : defs_) {
-        auto ini = i.second ? i.second->SemaAnalyze(ana) : SymbolType::Void;
-        if (IsError(ana.AnalyzeConst(i.first, ini, line_pos()))) {
-            return SymbolType::Error;
+        SymbolType ret;
+        if (i.second) {
+            auto init = i.second->SemaAnalyze(ana);
+            ret = ana.AnalyzeVar(i.first, init, line_pos());
         }
+        else {
+            ret = ana.AnalyzeVar(i.first, line_pos());
+        }
+        if (IsError(ret)) return SymbolType::Error;
     }
     set_env(ana.env());
     return SymbolType::Void;
