@@ -44,6 +44,7 @@ private:
     SymbolType PrintError(const char *message, unsigned int line_pos);
     SymbolType PrintError(const char *message, const char *id,
             unsigned int line_pos);
+    SymbolType IsIdDefined(const std::string &id, unsigned int line_pos);
 
     EnvPtr env_;
     unsigned int error_num_;

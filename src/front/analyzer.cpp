@@ -8,6 +8,10 @@ inline bool IsError(SymbolInfo info) {
     return info.type == SymbolType::Error;
 }
 
+inline bool IsError(SymbolType type) {
+    return type == SymbolType::Error;
+}
+
 inline bool IsConstOrVar(SymbolType type) {
     return type == SymbolType::Const || type == SymbolType::Var;
 }
@@ -31,26 +35,29 @@ SymbolType Analyzer::PrintError(const char *message, const char *id,
     return SymbolType::Error;
 }
 
+SymbolType Analyzer::IsIdDefined(const std::string &id,
+        unsigned int line_pos) {
+    if (!IsError(env_->GetInfo(id, false))) {
+        return PrintError("identifier has already been defined",
+                id.c_str(), line_pos);
+    }
+    return SymbolType::Void;
+}
+
 SymbolType Analyzer::AnalyzeConst(const std::string &id, SymbolType init,
         unsigned int line_pos) {
     if (init != SymbolType::Const) {
         return PrintError("initialize with non-constant value",
                 id.c_str(), line_pos);
     }
-    if (!IsError(env_->GetInfo(id))) {
-        return PrintError("identifier has already been defined",
-                id.c_str(), line_pos);
-    }
+    if (IsError(IsIdDefined(id, line_pos))) return SymbolType::Error;
     env_->AddSymbol(id, {SymbolType::Const, 0});
     return SymbolType::Void;
 }
 
 SymbolType Analyzer::AnalyzeVar(const std::string &id,
         unsigned int line_pos) {
-    if (!IsError(env_->GetInfo(id))) {
-        return PrintError("identifier has already been defined",
-                id.c_str(), line_pos);
-    }
+    if (IsError(IsIdDefined(id, line_pos))) return SymbolType::Error;
     env_->AddSymbol(id, {SymbolType::Var, 0});
     return SymbolType::Void;
 }
@@ -65,22 +72,26 @@ SymbolType Analyzer::AnalyzeVar(const std::string &id, SymbolType init,
 
 SymbolType Analyzer::AnalyzeProcedure(const std::string &id,
         unsigned int line_pos) {
-    if (!IsError(env_->GetInfo(id))) {
-        return PrintError("identifier has already been defined",
-                id.c_str(), line_pos);
-    }
+    if (IsError(IsIdDefined(id, line_pos))) return SymbolType::Error;
     env_->AddSymbol(id, {SymbolType::Proc, 0});
     return SymbolType::Void;
 }
 
 SymbolType Analyzer::AnalyzeFunction(const std::string &id,
         const IdList &args, unsigned int line_pos) {
-    if (!IsError(env_->GetInfo(id))) {
+    if (!IsError(env_->outer()->GetInfo(id, false))) {
         return PrintError("identifier has already been defined",
                 id.c_str(), line_pos);
     }
+    // add function id to current environment
+    // NOTE: this id is assignable (as return value),
+    //       and also callable (recursive call)
+    env_->AddSymbol(id, {SymbolType::Ret, args.size()});
     // add argument id to current environment
-    for (const auto &i : args) env_->AddSymbol(i, {SymbolType::Var, 0});
+    for (const auto &i : args) {
+        if (IsError(IsIdDefined(i, line_pos))) return SymbolType::Error;
+        env_->AddSymbol(i, {SymbolType::Var, 0});
+    }
     // add function id to outer environment
     env_->outer()->AddSymbol(id, {SymbolType::Func, args.size()});
     return SymbolType::Void;
@@ -93,7 +104,7 @@ SymbolType Analyzer::AnalyzeAssign(const std::string &id,
         return PrintError("identifier has not been defined",
                 id.c_str(), line_pos);
     }
-    if (info.type != SymbolType::Var) {
+    if (info.type != SymbolType::Var && info.type != SymbolType::Ret) {
         return PrintError("try to assign a value to a non-variable",
                 id.c_str(), line_pos);
     }
@@ -132,7 +143,7 @@ SymbolType Analyzer::AnalyzeBinary(SymbolType lhs, SymbolType rhs,
 SymbolType Analyzer::AnalyzeFunCall(const std::string &id, int arg_count,
         unsigned int line_pos) {
     auto info = env_->GetInfo(id);
-    if (info.type != SymbolType::Func) {
+    if (info.type != SymbolType::Func && info.type != SymbolType::Ret) {
         return PrintError("try to call a non-function",
                 id.c_str(), line_pos);
     }
@@ -151,7 +162,8 @@ SymbolType Analyzer::AnalyzeId(const std::string &id,
     }
     switch (info.type) {
         case SymbolType::Proc: return SymbolType::Void;
-        case SymbolType::Func: return AnalyzeFunCall(id, 0, line_pos);
+        case SymbolType::Func:
+        case SymbolType::Ret: return AnalyzeFunCall(id, 0, line_pos);
         default: return info.type;
     }
 }
