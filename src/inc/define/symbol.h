@@ -24,7 +24,7 @@ public:
     void AddSymbol(const std::string &id, SymbolInfo info) {
         symbols_.insert({id, info});
     }
-    SymbolInfo GetInfo(const std::string &id);
+    SymbolInfo GetInfo(const std::string &id, bool recursive = true);
 
     const EnvPtr &outer() const { return outer_; }
     bool is_root() const { return outer_ == nullptr; }
