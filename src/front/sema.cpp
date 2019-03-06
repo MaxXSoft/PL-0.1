@@ -54,10 +54,14 @@ SymbolType VarsAST::SemaAnalyze(Analyzer &ana) {
 }
 
 SymbolType ProcedureAST::SemaAnalyze(Analyzer &ana) {
+    // create an empty environment
+    // in order to consistent with the environment structure of function
+    ana.NewEnvironment();
     if (IsError(ana.AnalyzeProcedure(id_, line_pos()))
             || IsError(block_->SemaAnalyze(ana))) {
         return SymbolType::Error;
     }
+    ana.RestoreEnvironment();
     set_env(ana.env());
     return SymbolType::Void;
 }
