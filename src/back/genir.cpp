@@ -24,6 +24,10 @@ IRPtr AssignAST::GenerateIR(IRBuilder &irb) {
     //
 }
 
+IRPtr BeginEndAST::GenerateIR(IRBuilder &irb) {
+    //
+}
+
 IRPtr IfAST::GenerateIR(IRBuilder &irb) {
     //
 }
