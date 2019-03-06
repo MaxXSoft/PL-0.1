@@ -45,6 +45,7 @@ private:
     SymbolType PrintError(const char *message, const char *id,
             unsigned int line_pos);
     SymbolType IsIdDefined(const std::string &id, unsigned int line_pos);
+    SymbolInfo RecursiveQuery(const std::string &id);
 
     EnvPtr env_;
     unsigned int error_num_;

@@ -44,6 +44,29 @@ SymbolType Analyzer::IsIdDefined(const std::string &id,
     return SymbolType::Void;
 }
 
+SymbolInfo Analyzer::RecursiveQuery(const std::string &id) {
+    // handle function closure & variable capture
+    SymbolInfo info;
+    if (env_->in_nested_body()) {
+        // env: procedure/function body
+        info = env_->GetInfo(id, false);
+        if (IsError(info)) {
+            // env: function arguments
+            info = env_->outer()->GetInfo(id, false);
+            if (IsError(info)) {
+                // env: outer
+                const auto &env = env_->outer()->outer();
+                env->AddClosureSymbol(id);
+                info = env->GetInfo(id);
+            }
+        }
+    }
+    else {
+        info = env_->GetInfo(id);
+    }
+    return info;
+}
+
 SymbolType Analyzer::AnalyzeConst(const std::string &id, SymbolType init,
         unsigned int line_pos) {
     if (init != SymbolType::Const) {
@@ -73,7 +96,8 @@ SymbolType Analyzer::AnalyzeVar(const std::string &id, SymbolType init,
 SymbolType Analyzer::AnalyzeProcedure(const std::string &id,
         unsigned int line_pos) {
     if (IsError(IsIdDefined(id, line_pos))) return SymbolType::Error;
-    env_->AddSymbol(id, {SymbolType::Proc, 0});
+    // add procedure id to outer environment
+    env_->outer()->AddSymbol(id, {SymbolType::Proc, 0});
     return SymbolType::Void;
 }
 
@@ -99,7 +123,7 @@ SymbolType Analyzer::AnalyzeFunction(const std::string &id,
 
 SymbolType Analyzer::AnalyzeAssign(const std::string &id,
         SymbolType expr_type, unsigned int line_pos) {
-    auto info = env_->GetInfo(id);
+    auto info = RecursiveQuery(id);
     if (IsError(info)) {
         return PrintError("identifier has not been defined",
                 id.c_str(), line_pos);
@@ -142,7 +166,7 @@ SymbolType Analyzer::AnalyzeBinary(SymbolType lhs, SymbolType rhs,
 
 SymbolType Analyzer::AnalyzeFunCall(const std::string &id,
         const TypeList &args, unsigned int line_pos) {
-    auto info = env_->GetInfo(id);
+    auto info = RecursiveQuery(id);
     if (info.type != SymbolType::Func && info.type != SymbolType::Ret) {
         return PrintError("try to call a non-function",
                 id.c_str(), line_pos);
@@ -160,7 +184,7 @@ SymbolType Analyzer::AnalyzeFunCall(const std::string &id,
 
 SymbolType Analyzer::AnalyzeId(const std::string &id,
         unsigned int line_pos) {
-    auto info = env_->GetInfo(id);
+    auto info = RecursiveQuery(id);
     if (IsError(info)) {
         return PrintError("identifier has not been defined",
                 id.c_str(), line_pos);
