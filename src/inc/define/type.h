@@ -23,5 +23,6 @@ enum class SymbolType {
 };
 
 using IdList = std::vector<std::string>;
+using TypeList = std::vector<SymbolType>;
 
 #endif // PL01_DEFINE_TYPE_H_
