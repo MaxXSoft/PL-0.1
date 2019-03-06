@@ -19,8 +19,9 @@ PL01_OBJ_DIR = $(OBJ_DIR)/pl01
 TEST_OBJ_DIR = $(OBJ_DIR)/test
 SRC_DIR = $(TOP_DIR)/src
 TEST_DIR = $(TOP_DIR)/test
-INCLUDE_ARG := -I$(SRC_DIR)/inc -I$(TEST_DIR)
-LIBRARY_ARG :=
+INCLUDE_ARG := -I$(SRC_DIR)/inc -I$(TEST_DIR) -I/usr/local/opt/llvm/include
+LIBRARY_ARG := -L/usr/local/opt/llvm/lib -lLLVMCore -lLLVMBinaryFormat
+LIBRARY_ARG += -lLLVMSupport -lLLVMDemangle -lz -lcurses -lm -lxml2
 
 # files
 PL01_OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(PL01_OBJ_DIR)/%.o, $(wildcard $(SRC_DIR)/*.cpp))
