@@ -10,12 +10,15 @@
 #include <front/lexer.h>
 #include <front/analyzer.h>
 #include <define/symbol.h>
+#include <back/irbuilder.h>
+#include <back/ir.h>
 
 class BaseAST {
 public:
     virtual ~BaseAST() = default;
 
     virtual SymbolType SemaAnalyze(Analyzer &ana) = 0;
+    virtual IRPtr GenerateIR(IRBuilder &irb) = 0;
 
     unsigned int line_pos() const { return line_pos_; }
     const EnvPtr &env() const { return env_; }
@@ -44,6 +47,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     ASTPtr consts_, vars_, stat_;
@@ -58,6 +62,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     VarDefList defs_;
@@ -71,6 +76,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     VarDefList defs_;
@@ -85,6 +91,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     std::string id_;
@@ -101,6 +108,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     std::string id_;
@@ -116,6 +124,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     std::string id_;
@@ -130,6 +139,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     ASTPtrList stats_;
@@ -145,6 +155,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     ASTPtr cond_, then_, else_then_;
@@ -158,6 +169,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     ASTPtr cond_, body_;
@@ -171,6 +183,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     std::string asm_str_;
@@ -183,6 +196,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     Lexer::Keyword type_;
@@ -196,6 +210,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     Lexer::Keyword op_;     // 'odd' only
@@ -211,6 +226,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     Lexer::Operator op_;
@@ -226,6 +242,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     std::string id_;
@@ -239,6 +256,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     std::string id_;
@@ -251,6 +269,7 @@ public:
     }
 
     SymbolType SemaAnalyze(Analyzer &ana) override;
+    IRPtr GenerateIR(IRBuilder &irb) override;
 
 private:
     int value_;
