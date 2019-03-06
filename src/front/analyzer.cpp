@@ -140,15 +140,20 @@ SymbolType Analyzer::AnalyzeBinary(SymbolType lhs, SymbolType rhs,
     return SymbolType::Var;
 }
 
-SymbolType Analyzer::AnalyzeFunCall(const std::string &id, int arg_count,
-        unsigned int line_pos) {
+SymbolType Analyzer::AnalyzeFunCall(const std::string &id,
+        const TypeList &args, unsigned int line_pos) {
     auto info = env_->GetInfo(id);
     if (info.type != SymbolType::Func && info.type != SymbolType::Ret) {
         return PrintError("try to call a non-function",
                 id.c_str(), line_pos);
     }
-    if (info.func_arg_count != arg_count) {
+    if (info.func_arg_count != args.size()) {
         return PrintError("argument count mismatch", id.c_str(), line_pos);
+    }
+    for (const auto &i : args) {
+        if (i != SymbolType::Const && i != SymbolType::Var) {
+            return PrintError("invalid argument", id.c_str(), line_pos);
+        }
     }
     return SymbolType::Var;
 }
@@ -163,7 +168,7 @@ SymbolType Analyzer::AnalyzeId(const std::string &id,
     switch (info.type) {
         case SymbolType::Proc: return SymbolType::Void;
         case SymbolType::Func:
-        case SymbolType::Ret: return AnalyzeFunCall(id, 0, line_pos);
+        case SymbolType::Ret: return AnalyzeFunCall(id, {}, line_pos);
         default: return info.type;
     }
 }

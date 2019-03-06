@@ -28,7 +28,7 @@ public:
     SymbolType AnalyzeUnary(SymbolType operand, unsigned int line_pos);
     SymbolType AnalyzeBinary(SymbolType lhs, SymbolType rhs,
             unsigned int line_pos);
-    SymbolType AnalyzeFunCall(const std::string &id, int arg_count,
+    SymbolType AnalyzeFunCall(const std::string &id, const TypeList &args,
             unsigned int line_pos);
     SymbolType AnalyzeId(const std::string &id, unsigned int line_pos);
 
