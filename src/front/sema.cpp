@@ -131,10 +131,13 @@ SymbolType BinaryAST::SemaAnalyze(Analyzer &ana) {
 }
 
 SymbolType FunCallAST::SemaAnalyze(Analyzer &ana) {
+    TypeList types;
     for (const auto &i : args_) {
-        if (IsError(i->SemaAnalyze(ana))) return SymbolType::Error;
+        auto ret = i->SemaAnalyze(ana);
+        if (IsError(ret)) return SymbolType::Error;
+        types.push_back(ret);
     }
-    auto ret = ana.AnalyzeFunCall(id_, args_.size(), line_pos());
+    auto ret = ana.AnalyzeFunCall(id_, types, line_pos());
     set_env(ana.env());
     return ret;
 }
