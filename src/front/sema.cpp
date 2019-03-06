@@ -64,10 +64,13 @@ SymbolType ProcedureAST::SemaAnalyze(Analyzer &ana) {
 
 SymbolType FunctionAST::SemaAnalyze(Analyzer &ana) {
     ana.NewEnvironment();
-    auto ret = ana.AnalyzeFunction(id_, args_, line_pos());
+    if (IsError(ana.AnalyzeFunction(id_, args_, line_pos()))
+            || IsError(block_->SemaAnalyze(ana))) {
+        return SymbolType::Error;
+    }
     ana.RestoreEnvironment();
     set_env(ana.env());
-    return ret;
+    return SymbolType::Void;
 }
 
 SymbolType AssignAST::SemaAnalyze(Analyzer &ana) {
