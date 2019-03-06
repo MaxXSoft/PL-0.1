@@ -131,7 +131,7 @@ private:
     ASTPtr expr_;
 };
 
-class BeginEndAST: public BaseAST {
+class BeginEndAST : public BaseAST {
 public:
     BeginEndAST(ASTPtrList stats, unsigned int line_pos)
             : stats_(std::move(stats)) {
