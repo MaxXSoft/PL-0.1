@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <any>
+#include <vector>
+#include <functional>
 #include <cassert>
 
 class IRBase {
@@ -13,6 +15,8 @@ public:
 };
 
 using IRPtr = std::shared_ptr<IRBase>;
+using IRPtrList = std::vector<IRPtr>;
+using LazyIRGen = std::function<IRPtr()>;
 
 template <typename T>
 const T IRCast(const IRPtr &ir) {
