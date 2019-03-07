@@ -55,9 +55,9 @@ SymbolInfo Analyzer::RecursiveQuery(const std::string &id) {
             info = env_->outer()->GetInfo(id, false);
             if (IsError(info)) {
                 // env: outer
-                const auto &env = env_->outer()->outer();
-                env->AddClosureSymbol(id);
-                info = env->GetInfo(id);
+                info = env_->outer()->outer()->GetInfo(id);
+                // add closure symbol to argument env
+                env_->outer()->AddClosureSymbol(id);
             }
         }
     }
