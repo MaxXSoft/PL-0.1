@@ -1,7 +1,6 @@
 #include <front/parser.h>
 
 #include <iostream>
-#include <sstream>
 
 namespace {
 
@@ -294,41 +293,19 @@ ASTPtr Parser::ParseAsm() {
     }
     NextToken();
     // get assembly
-    std::ostringstream oss;
-    while (!IsTokenKeyword(Keyword::End)) {
-        switch (cur_token_) {
-            case Token::Id: {
-                oss << lexer_.id_val() << ' ';
-                break;
-            }
-            case Token::Keyword: {
-                auto index = static_cast<int>(lexer_.key_val());
-                oss << keywords[index] << ' ';
-                break;
-            }
-            case Token::Num: {
-                oss << lexer_.num_val();
-                break;
-            }
-            case Token::Char: {
-                if (lexer_.char_val() == ';') {
-                    oss << std::endl;
-                }
-                else {
-                    oss << lexer_.char_val() << ' ';
-                }
-                break;
-            }
-            default: {
-                return PrintError("invalid assembly");
-            }
-        }
+    std::string asm_str;
+    while (cur_token_ == Token::String) {
+        asm_str += lexer_.str_val();
         NextToken();
+        if (IsTokenChar(';')) {
+            asm_str += '\n';
+            NextToken();
+        }
     }
-    // eat 'end'
-    oss << std::endl;
+    // check 'end'
+    if (!IsTokenKeyword(Keyword::End)) return PrintError("'end' required");
     NextToken();
-    return std::make_unique<AsmAST>(oss.str(), line_pos);
+    return std::make_unique<AsmAST>(asm_str, line_pos);
 }
 
 ASTPtr Parser::ParseControl() {
