@@ -8,7 +8,7 @@ class Lexer {
 public:
     enum class Token {
         Error, End, Char,
-        Id, Num,
+        Id, Num, String,
         Keyword, Operator
     };
 
@@ -40,6 +40,7 @@ public:
     unsigned int error_num() const { return error_num_; }
     const std::string &id_val() const { return id_val_; }
     int num_val() const { return num_val_; }
+    const std::string &str_val() const { return str_val_; }
     Keyword key_val() const { return key_val_; }
     Operator op_val() const { return op_val_; }
     char char_val() const { return char_val_; }
@@ -52,6 +53,7 @@ private:
     Token PrintError(const char *message);
     Token HandleId();
     Token HandleNum();
+    Token HandleString();
     Token HandleOperator();
     Token HandleComment();
     Token HandleEOL();
@@ -59,7 +61,7 @@ private:
     std::istream &in_;
     unsigned int line_pos_, error_num_;
     char last_char_;
-    std::string id_val_;
+    std::string id_val_, str_val_;
     int num_val_;
     Keyword key_val_;
     Operator op_val_;

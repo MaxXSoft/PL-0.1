@@ -83,6 +83,21 @@ Lexer::Token Lexer::HandleNum() {
             PrintError("invalid number") : Token::Num;
 }
 
+Lexer::Token Lexer::HandleString() {
+    std::string str;
+    // start with quotes
+    NextChar();
+    while (last_char_ != '\'') {
+        str += last_char_;
+        NextChar();
+        if (IsEOL()) return PrintError("expected \"\'\"");
+    }
+    // eat right quotation mark
+    NextChar();
+    str_val_ = str;
+    return Token::String;
+}
+
 Lexer::Token Lexer::HandleOperator() {
     // read string
     std::string op;
@@ -127,6 +142,8 @@ Lexer::Token Lexer::NextToken() {
     if (std::isalpha(last_char_)) return HandleId();
     // number
     if (std::isdigit(last_char_) || last_char_ == '$') return HandleNum();
+    // string
+    if (last_char_ == '\'') return HandleString();
     // operator
     if (IsOperatorChar(last_char_)) return HandleOperator();
     // end of line
