@@ -1,6 +1,6 @@
 # C++ compiler
 CPPFLAGS := $(DEBUG_ARG) $(OPT_ARG) $(INCLUDE_ARG)
-CPPFLAGS += -c -std=c++17
+CPPFLAGS += -c -Wall -Werror -std=c++17
 export CC = clang++ $(CPPFLAGS)
 
 # linker
