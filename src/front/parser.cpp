@@ -2,16 +2,6 @@
 
 #include <iostream>
 
-namespace {
-
-const char *keywords[] = {
-    "const", "var", "procedure", "function", "begin", "end",
-    "if", "then", "else", "while", "do", "break", "continue",
-    "odd", "asm"
-};
-
-} // namespace
-
 ASTPtr Parser::PrintError(const char *message) {
     std::cerr << "\033[1mparser\033[0m (line " << lexer_.line_pos();
     std::cerr << "): \033[31m\033[1merror\033[0m: " << message << std::endl;
