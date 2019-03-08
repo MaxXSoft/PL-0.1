@@ -44,8 +44,7 @@ public:
     IRPtr GenerateId(const std::string &id) override;
     IRPtr GenerateNumber(int value) override;
 
-    void PrintIR() { module_->print(llvm::errs(), nullptr); }
-    void Dump() { module_->dump(); }
+    void Dump() { module_->print(llvm::errs(), nullptr); }
 
 private:
     void InitializeFPM();

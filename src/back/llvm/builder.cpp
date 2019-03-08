@@ -158,6 +158,5 @@ IRPtr LLVMIRBuilder::GenerateId(const std::string &id) {
 }
 
 IRPtr LLVMIRBuilder::GenerateNumber(int value) {
-    auto v = llvm::ConstantInt::get(context_, llvm::APInt(32, value, true));
-    return MakeIR(v);
+    return MakeIR(builder_.getInt32(value));
 }
