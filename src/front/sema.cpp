@@ -93,7 +93,7 @@ SymbolType BeginEndAST::SemaAnalyze(Analyzer &ana) {
 
 SymbolType IfAST::SemaAnalyze(Analyzer &ana) {
     if (IsError(cond_->SemaAnalyze(ana))) return SymbolType::Error;
-    if (IsError(then_->SemaAnalyze(ana))) return SymbolType::Error;
+    if (then_ && IsError(then_->SemaAnalyze(ana))) return SymbolType::Error;
     if (else_then_ && IsError(else_then_->SemaAnalyze(ana))) {
         return SymbolType::Error;
     }
@@ -104,7 +104,7 @@ SymbolType IfAST::SemaAnalyze(Analyzer &ana) {
 SymbolType WhileAST::SemaAnalyze(Analyzer &ana) {
     ana.EnterWhile();
     if (IsError(cond_->SemaAnalyze(ana))) return SymbolType::Error;
-    if (IsError(body_->SemaAnalyze(ana))) return SymbolType::Error;
+    if (body_ && IsError(body_->SemaAnalyze(ana))) return SymbolType::Error;
     ana.ExitWhile();
     set_env(ana.env());
     return SymbolType::Void;
