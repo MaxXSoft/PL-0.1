@@ -5,6 +5,7 @@
 #include <utility>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include <define/type.h>
 #include <front/lexer.h>
@@ -17,6 +18,7 @@ class BaseAST {
 public:
     virtual ~BaseAST() = default;
 
+    virtual void Dump(std::ostream &os = std::cerr) = 0;
     virtual SymbolType SemaAnalyze(Analyzer &ana) = 0;
     virtual IRPtr GenerateIR(IRBuilder &irb) = 0;
 
@@ -46,6 +48,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -61,6 +64,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -75,6 +79,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -90,6 +95,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -107,6 +113,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -123,6 +130,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -138,6 +146,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -154,6 +163,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -168,6 +178,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -182,6 +193,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -195,6 +207,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -209,6 +222,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -225,6 +239,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -241,6 +256,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -255,6 +271,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
@@ -268,6 +285,7 @@ public:
         set_line_pos(line_pos);
     }
 
+    void Dump(std::ostream &os) override;
     SymbolType SemaAnalyze(Analyzer &ana) override;
     IRPtr GenerateIR(IRBuilder &irb) override;
 
