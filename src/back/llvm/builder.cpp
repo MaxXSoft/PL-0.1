@@ -7,6 +7,7 @@
 #include <llvm/ADT/APInt.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Type.h>
+#include <llvm/IR/InlineAsm.h>
 #include <llvm/Transforms/Utils.h>
 #include <llvm/Transforms/InstCombine/InstCombine.h>
 #include <llvm/Transforms/Scalar.h>
@@ -88,23 +89,64 @@ IRPtr LLVMIRBuilder::GenerateAssign(const std::string &id,
 
 IRPtr LLVMIRBuilder::GenerateIf(const IRPtr &cond, LazyIRGen then,
         LazyIRGen else_then) {
-    //
+    auto cur_func = builder_.GetInsertBlock()->getParent();
+    // create basic blocks
+    auto then_block = llvm::BasicBlock::Create(context_, "", cur_func);
+    auto else_block = llvm::BasicBlock::Create(context_);
+    auto merge_block = llvm::BasicBlock::Create(context_);
+    // create conditional branch
+    builder_.CreateCondBr(GetValue(cond), then_block, else_block);
+    // emit 'then' block
+    builder_.SetInsertPoint(then_block);
+    then();
+    builder_.CreateBr(merge_block);
+    // emit 'else' block
+    cur_func->getBasicBlockList().push_back(else_block);
+    builder_.SetInsertPoint(else_block);
+    else_then();
+    builder_.CreateBr(merge_block);
+    // emit merge block
+    cur_func->getBasicBlockList().push_back(merge_block);
+    builder_.SetInsertPoint(merge_block);
     return nullptr;
 }
 
-IRPtr LLVMIRBuilder::GenerateWhile(const IRPtr &cond, LazyIRGen body) {
-    //
+IRPtr LLVMIRBuilder::GenerateWhile(LazyIRGen cond, LazyIRGen body) {
+    auto cur_func = builder_.GetInsertBlock()->getParent();
+    // create basic blocks
+    auto cond_block = llvm::BasicBlock::Create(context_, "", cur_func);
+    auto body_block = llvm::BasicBlock::Create(context_);
+    auto end_block = llvm::BasicBlock::Create(context_);
+    // add to break/continue stack
+    break_cont_.push({end_block, cond_block});
+    // emit 'cond' block
+    builder_.SetInsertPoint(cond_block);
+    auto cond_expr = GetValue(cond());
+    builder_.CreateCondBr(cond_expr, body_block, end_block);
+    // emit 'body' block
+    cur_func->getBasicBlockList().push_back(body_block);
+    builder_.SetInsertPoint(body_block);
+    body();
+    builder_.CreateBr(cond_block);
+    // emit 'end' block
+    cur_func->getBasicBlockList().push_back(end_block);
+    builder_.SetInsertPoint(end_block);
+    // pop the top element of break/continue stack
+    break_cont_.pop();
     return nullptr;
 }
 
 IRPtr LLVMIRBuilder::GenerateAsm(const std::string &asm_str) {
-    //
-    return nullptr;
+    auto asm_ty = llvm::FunctionType::get(builder_.getVoidTy(), false);
+    auto asm_func = llvm::InlineAsm::get(asm_ty, asm_str, "", true);
+    return MakeIR(builder_.CreateCall(asm_func));
 }
 
 IRPtr LLVMIRBuilder::GenerateControl(Lexer::Keyword type) {
-    //
-    return nullptr;
+    assert(!break_cont_.empty());
+    auto target = type == Lexer::Keyword::Break ?
+            break_cont_.top().first : break_cont_.top().second;
+    return MakeIR(builder_.CreateBr(target));
 }
 
 IRPtr LLVMIRBuilder::GenerateUnary(const IRPtr &operand) {
@@ -135,7 +177,7 @@ IRPtr LLVMIRBuilder::GenerateBinary(Lexer::Operator op,
     }
     // error or impossible situation
     assert(false);
-    return MakeIR(nullptr);
+    return nullptr;
 }
 
 IRPtr LLVMIRBuilder::GenerateFunCall(const std::string &id,

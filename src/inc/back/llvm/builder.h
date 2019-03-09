@@ -3,11 +3,14 @@
 
 #include <memory>
 #include <string>
+#include <utility>
+#include <stack>
 
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
+#include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/LegacyPassManager.h>
 
 #include <back/irbuilder.h>
@@ -33,7 +36,7 @@ public:
             const IRPtr &expr) override;
     IRPtr GenerateIf(const IRPtr &cond, LazyIRGen then,
             LazyIRGen else_then) override;
-    IRPtr GenerateWhile(const IRPtr &cond, LazyIRGen body) override;
+    IRPtr GenerateWhile(LazyIRGen cond, LazyIRGen body) override;
     IRPtr GenerateAsm(const std::string &asm_str) override;
     IRPtr GenerateControl(Lexer::Keyword type) override;
     IRPtr GenerateUnary(const IRPtr &operand) override;
@@ -47,14 +50,20 @@ public:
     void Dump() { module_->print(llvm::errs(), nullptr); }
 
 private:
+    // pair for storing target block of break & continue
+    using BreakCont = std::pair<llvm::BasicBlock *, llvm::BasicBlock *>;
+
     void InitializeFPM();
     void OptimizeFunction(llvm::Function *func) { fpm_->run(*func); }
     llvm::AllocaInst *CreateAlloca(llvm::Function *func);
 
+    // LLVM stuffs
     llvm::LLVMContext context_;
     llvm::IRBuilder<> builder_;
     std::unique_ptr<llvm::Module> module_;
     std::unique_ptr<llvm::legacy::FunctionPassManager> fpm_;
+    // stack for generating break/continue statement
+    std::stack<BreakCont> break_cont_;
 };
 
 #endif // PL01_BACK_LLVM_BUILDER_H_
