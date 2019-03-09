@@ -3,14 +3,14 @@
 #include <cassert>
 
 IRPtr BlockAST::GenerateIR(IRBuilder &irb) {
-    return irb.GenerateBlock(
-            [&] { return consts_ ? consts_->GenerateIR(irb) : nullptr; },
-            [&] { return vars_ ? vars_->GenerateIR(irb) : nullptr; },
-            [&] {
+    LazyIRGen consts, vars, stat;
+    if (consts_) consts = [&] { return consts_->GenerateIR(irb); };
+    if (vars_) vars = [&] { return vars_->GenerateIR(irb); };
+    if (stat_) stat = [&] { return stat_->GenerateIR(irb); };
+    return irb.GenerateBlock(consts, vars, [&] {
                 for (const auto &i : proc_func_) i->GenerateIR(irb);
                 return nullptr;
-            },
-            [&] { return stat_ ? stat_->GenerateIR(irb) : nullptr; });
+            }, stat);
 }
 
 IRPtr ConstsAST::GenerateIR(IRBuilder &irb) {
@@ -50,15 +50,16 @@ IRPtr BeginEndAST::GenerateIR(IRBuilder &irb) {
 }
 
 IRPtr IfAST::GenerateIR(IRBuilder &irb) {
-    return irb.GenerateIf(cond_->GenerateIR(irb),
-            [&] { return then_ ? then_->GenerateIR(irb) : nullptr; },
-            [&] { return else_then_ ?
-                    else_then_->GenerateIR(irb) : nullptr; });
+    LazyIRGen then, else_then;
+    if (then_) then = [&] { return then_->GenerateIR(irb); };
+    if (else_then_) else_then = [&] { return else_then_->GenerateIR(irb); };
+    return irb.GenerateIf(cond_->GenerateIR(irb), then, else_then);
 }
 
 IRPtr WhileAST::GenerateIR(IRBuilder &irb) {
-    return irb.GenerateWhile([&] { return cond_->GenerateIR(irb); },
-            [&] { return body_ ? body_->GenerateIR(irb) : nullptr; });
+    LazyIRGen body;
+    if (body_) body = [&] { return body_->GenerateIR(irb); };
+    return irb.GenerateWhile([&] { return cond_->GenerateIR(irb); }, body);
 }
 
 IRPtr AsmAST::GenerateIR(IRBuilder &irb) {
