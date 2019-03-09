@@ -1,13 +1,16 @@
 #include <define/ast.h>
 
+#include <cassert>
+
 IRPtr BlockAST::GenerateIR(IRBuilder &irb) {
-    return irb.GenerateBlock([&] { return consts_->GenerateIR(irb); },
-            [&] { return vars_->GenerateIR(irb); },
+    return irb.GenerateBlock(
+            [&] { return consts_ ? consts_->GenerateIR(irb) : nullptr; },
+            [&] { return vars_ ? vars_->GenerateIR(irb) : nullptr; },
             [&] {
                 for (const auto &i : proc_func_) i->GenerateIR(irb);
                 return nullptr;
             },
-            [&] { return stat_->GenerateIR(irb); });
+            [&] { return stat_ ? stat_->GenerateIR(irb) : nullptr; });
 }
 
 IRPtr ConstsAST::GenerateIR(IRBuilder &irb) {
@@ -48,13 +51,14 @@ IRPtr BeginEndAST::GenerateIR(IRBuilder &irb) {
 
 IRPtr IfAST::GenerateIR(IRBuilder &irb) {
     return irb.GenerateIf(cond_->GenerateIR(irb),
-            [&] { return then_->GenerateIR(irb); },
-            [&] { return else_then_->GenerateIR(irb); });
+            [&] { return then_ ? then_->GenerateIR(irb) : nullptr; },
+            [&] { return else_then_ ?
+                    else_then_->GenerateIR(irb) : nullptr; });
 }
 
 IRPtr WhileAST::GenerateIR(IRBuilder &irb) {
-    return irb.GenerateWhile(cond_->GenerateIR(irb),
-            [&] { return body_->GenerateIR(irb); });
+    return irb.GenerateWhile([&] { return cond_->GenerateIR(irb); },
+            [&] { return body_ ? body_->GenerateIR(irb) : nullptr; });
 }
 
 IRPtr AsmAST::GenerateIR(IRBuilder &irb) {
@@ -67,6 +71,7 @@ IRPtr ControlAST::GenerateIR(IRBuilder &irb) {
 
 IRPtr UnaryAST::GenerateIR(IRBuilder &irb) {
     static_cast<void>(op_);     // 'odd' only
+    assert(op_ == Lexer::Keyword::Odd);
     return irb.GenerateUnary(operand_->GenerateIR(irb));
 }
 
