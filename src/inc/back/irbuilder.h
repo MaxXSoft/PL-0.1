@@ -24,7 +24,7 @@ public:
             const IRPtr &expr) = 0;
     virtual IRPtr GenerateIf(const IRPtr &cond, LazyIRGen then,
             LazyIRGen else_then) = 0;
-    virtual IRPtr GenerateWhile(const IRPtr &cond, LazyIRGen body) = 0;
+    virtual IRPtr GenerateWhile(LazyIRGen cond, LazyIRGen body) = 0;
     virtual IRPtr GenerateAsm(const std::string &asm_str) = 0;
     virtual IRPtr GenerateControl(Lexer::Keyword type) = 0;
     virtual IRPtr GenerateUnary(const IRPtr &operand) = 0;  // 'odd' only
