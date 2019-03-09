@@ -6,7 +6,6 @@
 #include <llvm/IR/Constants.h>
 #include <llvm/ADT/APInt.h>
 #include <llvm/IR/Instructions.h>
-#include <llvm/IR/Type.h>
 #include <llvm/IR/InlineAsm.h>
 #include <llvm/Transforms/Utils.h>
 #include <llvm/Transforms/InstCombine/InstCombine.h>
@@ -54,13 +53,38 @@ llvm::AllocaInst *LLVMIRBuilder::CreateAlloca(llvm::Function *func) {
 
 IRPtr LLVMIRBuilder::GenerateBlock(LazyIRGen consts, LazyIRGen vars,
         LazyIRGen proc_func, LazyIRGen stat) {
-    //
+    // check if is body of function or procedure
+    if (!cur_func_.empty()) {
+        auto body = llvm::BasicBlock::Create(context_, "", cur_func_.top());
+        builder_.SetInsertPoint(body);
+    }
+    // generate constants, variables, procedures and functions
+    if (consts) consts();
+    if (vars) vars();
+    proc_func();
+    // generate statement
+    if (stat) {
+        // check if it's need to generate main function
+        if (cur_func_.empty()) {
+            auto func = CreateFunction("main",
+                    builder_.getInt32Ty(), builder_.getInt32Ty(),
+                    builder_.getInt8PtrTy()->getPointerTo());
+            cur_func_.push(func);
+            stat();
+            cur_func_.pop();
+            fpm_->run(*func);
+        }
+        else {
+            stat();
+        }
+    }
     return nullptr;
 }
 
 IRPtr LLVMIRBuilder::GenerateConst(const std::string &id,
         const IRPtr &expr) {
     //
+    // const_map_[]
     return nullptr;
 }
 

@@ -5,6 +5,7 @@
 #include <string>
 #include <utility>
 #include <stack>
+#include <map>
 
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
@@ -12,6 +13,7 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/BasicBlock.h>
 #include <llvm/IR/LegacyPassManager.h>
+#include <llvm/IR/Type.h>
 
 #include <back/irbuilder.h>
 
@@ -57,6 +59,18 @@ private:
     void OptimizeFunction(llvm::Function *func) { fpm_->run(*func); }
     llvm::AllocaInst *CreateAlloca(llvm::Function *func);
 
+    template <typename... Args>
+    llvm::Function *CreateFunction(const char *name, llvm::Type *ret,
+            Args... args) {
+        llvm::Type *args_type[] = {args...};
+        auto func_type = llvm::FunctionType::get(ret, args_type, false);
+        auto func = llvm::Function::Create(func_type,
+                llvm::Function::ExternalLinkage, name, module_.get());
+        auto body = llvm::BasicBlock::Create(context_, "", func);
+        builder_.SetInsertPoint(body);
+        return func;
+    }
+
     // LLVM stuffs
     llvm::LLVMContext context_;
     llvm::IRBuilder<> builder_;
@@ -64,6 +78,10 @@ private:
     std::unique_ptr<llvm::legacy::FunctionPassManager> fpm_;
     // stack for generating break/continue statement
     std::stack<BreakCont> break_cont_;
+    // stack for current function
+    std::stack<llvm::Function *> cur_func_;
+    // constant map
+    std::map<std::string, llvm::Value *> const_map_;
 };
 
 #endif // PL01_BACK_LLVM_BUILDER_H_
