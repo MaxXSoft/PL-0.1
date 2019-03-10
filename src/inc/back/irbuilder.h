@@ -21,7 +21,7 @@ public:
     virtual IRPtr GenerateFunction(const std::string &id,
             const IdList &args, LazyIRGen block) = 0;
     virtual IRPtr GenerateAssign(const std::string &id,
-            const IRPtr &expr) = 0;
+            const IRPtr &expr, SymbolType type) = 0;
     virtual IRPtr GenerateIf(const IRPtr &cond, LazyIRGen then,
             LazyIRGen else_then) = 0;
     virtual IRPtr GenerateWhile(LazyIRGen cond, LazyIRGen body) = 0;
@@ -32,7 +32,7 @@ public:
             const IRPtr &lhs, const IRPtr &rhs) = 0;
     virtual IRPtr GenerateFunCall(const std::string &id,
             const IRPtrList &args) = 0;
-    virtual IRPtr GenerateId(const std::string &id) = 0;
+    virtual IRPtr GenerateId(const std::string &id, SymbolType type) = 0;
     virtual IRPtr GenerateNumber(int value) = 0;
 };
 
