@@ -126,9 +126,14 @@ IRPtr LLVMIRBuilder::GenerateProcedure(const std::string &id,
     values_->AddValue(id, func);
     NewTable();
     // generate block
+    bool is_declare = true;
+    gen_func_args_.push([&is_declare] {
+        is_declare = false;
+        return nullptr;
+    });
     block();
     // generate return statement
-    builder_.CreateRetVoid();
+    if (!is_declare) builder_.CreateRetVoid();
     // remove current function info
     cur_func_.pop();
     RestoreTable();
@@ -152,7 +157,7 @@ IRPtr LLVMIRBuilder::GenerateFunction(const std::string &id,
     NewTable();
     // generate arguments and return value
     llvm::Value *ret = nullptr;
-    gen_func_args_.push([this, func, &args, &id, &ret]() {
+    gen_func_args_.push([this, func, &args, &id, &ret] {
         auto it = args.begin();
         for (auto &&arg : func->args()) {
             auto alloca = CreateAlloca(func);
