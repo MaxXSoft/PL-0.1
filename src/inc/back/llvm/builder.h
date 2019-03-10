@@ -27,6 +27,7 @@ public:
               module_(std::make_unique<llvm::Module>(name, context_)) {
         NewTable();
         InitializeFPM();
+        InitializeTarget();
     }
 
     IRPtr GenerateBlock(LazyIRGen consts, LazyIRGen vars,
@@ -53,6 +54,7 @@ public:
     IRPtr GenerateId(const std::string &id, SymbolType type) override;
     IRPtr GenerateNumber(int value) override;
 
+    bool CompileToObject(const char *file);
     void Dump(RawStdOStream &&os = std::cerr) {
         module_->print(os, nullptr);
     }
@@ -62,6 +64,7 @@ private:
     using BreakCont = std::pair<llvm::BasicBlock *, llvm::BasicBlock *>;
 
     void InitializeFPM();
+    void InitializeTarget();
     void OptimizeFunction(llvm::Function *func) { fpm_->run(*func); }
     llvm::AllocaInst *CreateAlloca(llvm::Function *func);
     std::string NewFunName(const std::string &id);

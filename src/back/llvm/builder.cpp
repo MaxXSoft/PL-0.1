@@ -11,6 +11,11 @@
 #include <llvm/Transforms/InstCombine/InstCombine.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetOptions.h>
+#include <llvm/Support/FileSystem.h>
 
 #include <back/llvm/ir.h>
 
@@ -45,6 +50,15 @@ void LLVMIRBuilder::InitializeFPM() {
     fpm_->doInitialization();
 }
 
+void LLVMIRBuilder::InitializeTarget() {
+    // initialize target registry
+    llvm::InitializeAllTargetInfos();
+    llvm::InitializeAllTargets();
+    llvm::InitializeAllTargetMCs();
+    llvm::InitializeAllAsmParsers();
+    llvm::InitializeAllAsmPrinters();
+}
+
 llvm::AllocaInst *LLVMIRBuilder::CreateAlloca(llvm::Function *func) {
     auto &entry = func->getEntryBlock();
     llvm::IRBuilder<> builder(&entry, entry.begin());
@@ -54,6 +68,44 @@ llvm::AllocaInst *LLVMIRBuilder::CreateAlloca(llvm::Function *func) {
 std::string LLVMIRBuilder::NewFunName(const std::string &id) {
     // avoid naming conflict when creating a function called main
     return id != "main" ? id : "_main";
+}
+
+bool LLVMIRBuilder::CompileToObject(const char *file) {
+    using namespace llvm;
+    // initialize target triple
+    std::string target_error;
+    auto target_tri = sys::getDefaultTargetTriple();
+    module_->setTargetTriple(target_tri);
+    // lookup target in target registry
+    auto target = TargetRegistry::lookupTarget(target_tri, target_error);
+    if (!target) {
+        errs() << target_error << '\n';
+        return false;
+    }
+    // initialize target machine
+    TargetOptions opt;
+    auto rm = Optional<Reloc::Model>();
+    auto machine = target->createTargetMachine(target_tri,
+            "generic", "", opt, rm);
+    module_->setDataLayout(machine->createDataLayout());
+    // open object file
+    std::error_code ec;
+    raw_fd_ostream dest(file, ec, sys::fs::F_None);
+    if (ec) {
+        errs() << "could not open file '" << file << "': ";
+        errs() << ec.message() << "\n";
+        return false;
+    }
+    // compile to object file
+    legacy::PassManager pass;
+    auto file_type = TargetMachine::CGFT_ObjectFile;
+    if (machine->addPassesToEmitFile(pass, dest, nullptr, file_type)) {
+        errs() << "target machine cannot emit file of this type\n";
+        return false;
+    }
+    pass.run(*module_);
+    dest.flush();
+    return true;
 }
 
 IRPtr LLVMIRBuilder::GenerateBlock(LazyIRGen consts, LazyIRGen vars,
