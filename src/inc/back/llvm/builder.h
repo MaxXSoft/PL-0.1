@@ -6,6 +6,7 @@
 #include <utility>
 #include <stack>
 #include <map>
+#include <cstdlib>
 
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
@@ -16,12 +17,14 @@
 #include <llvm/IR/Type.h>
 
 #include <back/irbuilder.h>
+#include <back/llvm/value.h>
 
 class LLVMIRBuilder : public IRBuilder {
 public:
     LLVMIRBuilder(const std::string &name)
             : builder_(context_),
               module_(std::make_unique<llvm::Module>(name, context_)) {
+        NewTable();
         InitializeFPM();
     }
 
@@ -35,7 +38,7 @@ public:
     IRPtr GenerateFunction(const std::string &id,
             const IdList &args, LazyIRGen block) override;
     IRPtr GenerateAssign(const std::string &id,
-            const IRPtr &expr) override;
+            const IRPtr &expr, SymbolType type) override;
     IRPtr GenerateIf(const IRPtr &cond, LazyIRGen then,
             LazyIRGen else_then) override;
     IRPtr GenerateWhile(LazyIRGen cond, LazyIRGen body) override;
@@ -46,7 +49,7 @@ public:
             const IRPtr &lhs, const IRPtr &rhs) override;
     IRPtr GenerateFunCall(const std::string &id,
             const IRPtrList &args) override;
-    IRPtr GenerateId(const std::string &id) override;
+    IRPtr GenerateId(const std::string &id, SymbolType type) override;
     IRPtr GenerateNumber(int value) override;
 
     void Dump() { module_->print(llvm::errs(), nullptr); }
@@ -58,6 +61,7 @@ private:
     void InitializeFPM();
     void OptimizeFunction(llvm::Function *func) { fpm_->run(*func); }
     llvm::AllocaInst *CreateAlloca(llvm::Function *func);
+    std::string NewFunName(const std::string &id);
 
     template <typename... Args>
     llvm::Function *CreateFunction(const char *name, llvm::Type *ret,
@@ -71,6 +75,9 @@ private:
         return func;
     }
 
+    void NewTable() { values_ = std::make_shared<ValueTable>(values_); } 
+    void RestoreTable() { values_ = values_->outer(); }
+
     // LLVM stuffs
     llvm::LLVMContext context_;
     llvm::IRBuilder<> builder_;
@@ -80,8 +87,9 @@ private:
     std::stack<BreakCont> break_cont_;
     // stack for current function
     std::stack<llvm::Function *> cur_func_;
-    // constant map
-    std::map<std::string, llvm::Value *> const_map_;
+    std::stack<LazyIRGen> gen_func_args_;
+    // constants and variables
+    VTPtr values_;
 };
 
 #endif // PL01_BACK_LLVM_BUILDER_H_

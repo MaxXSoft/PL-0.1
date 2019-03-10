@@ -46,22 +46,31 @@ void LLVMIRBuilder::InitializeFPM() {
 }
 
 llvm::AllocaInst *LLVMIRBuilder::CreateAlloca(llvm::Function *func) {
-    llvm::IRBuilder<> builder(&func->getEntryBlock(),
-            func->getEntryBlock().begin());
-    return builder.CreateAlloca(llvm::Type::getInt32Ty(context_));
+    auto &entry = func->getEntryBlock();
+    llvm::IRBuilder<> builder(&entry, entry.begin());
+    return builder.CreateAlloca(builder_.getInt32Ty());
+}
+
+std::string LLVMIRBuilder::NewFunName(const std::string &id) {
+    // avoid naming conflict when creating a function called main
+    return id != "main" ? id : "_main";
 }
 
 IRPtr LLVMIRBuilder::GenerateBlock(LazyIRGen consts, LazyIRGen vars,
         LazyIRGen proc_func, LazyIRGen stat) {
+    bool is_func_declare = !consts && !vars && !stat;
+    // generate procdures and functions first
+    proc_func();
     // check if is body of function or procedure
-    if (!cur_func_.empty()) {
+    if (!cur_func_.empty() && !is_func_declare) {
         auto body = llvm::BasicBlock::Create(context_, "", cur_func_.top());
         builder_.SetInsertPoint(body);
     }
-    // generate constants, variables, procedures and functions
+    // generate constants and variables
     if (consts) consts();
     if (vars) vars();
-    proc_func();
+    // generate arguments and return value of function if necessary
+    if (!gen_func_args_.empty() && !is_func_declare) gen_func_args_.top()();
     // generate statement
     if (stat) {
         // check if it's need to generate main function
@@ -71,8 +80,9 @@ IRPtr LLVMIRBuilder::GenerateBlock(LazyIRGen consts, LazyIRGen vars,
                     builder_.getInt8PtrTy()->getPointerTo());
             cur_func_.push(func);
             stat();
+            builder_.CreateRet(builder_.getInt32(0));
             cur_func_.pop();
-            fpm_->run(*func);
+            OptimizeFunction(func);
         }
         else {
             stat();
@@ -83,31 +93,102 @@ IRPtr LLVMIRBuilder::GenerateBlock(LazyIRGen consts, LazyIRGen vars,
 
 IRPtr LLVMIRBuilder::GenerateConst(const std::string &id,
         const IRPtr &expr) {
-    //
-    // const_map_[]
+    values_->AddValue(id, GetValue(expr));
     return nullptr;
 }
 
 IRPtr LLVMIRBuilder::GenerateVar(const std::string &id, const IRPtr &init) {
-    //
+    llvm::Value *var;
+    auto init_value = init ? GetValue(init) : builder_.getInt32(0);
+    if (cur_func_.empty()) {
+        // create global variable
+        var = module_->getOrInsertGlobal(id, builder_.getInt32Ty());
+    }
+    else {
+        // create alloca
+        var = CreateAlloca(cur_func_.top());
+    }
+    // generate store
+    builder_.CreateStore(init_value, var);
+    values_->AddValue(id, var);
     return nullptr;
 }
 
 IRPtr LLVMIRBuilder::GenerateProcedure(const std::string &id,
         LazyIRGen block) {
-    //
+    // TODO: nested function!
+    // create function declaraction
+    auto func_type = llvm::FunctionType::get(builder_.getVoidTy(), false);
+    auto func = llvm::Function::Create(func_type,
+            llvm::Function::ExternalLinkage, NewFunName(id), module_.get());
+    // store information of current function
+    cur_func_.push(func);
+    values_->AddValue(id, func);
+    NewTable();
+    // generate block
+    block();
+    // generate return statement
+    builder_.CreateRetVoid();
+    // remove current function info
+    cur_func_.pop();
+    RestoreTable();
+    // do optimize
+    OptimizeFunction(func);
     return nullptr;
 }
 
 IRPtr LLVMIRBuilder::GenerateFunction(const std::string &id,
         const IdList &args, LazyIRGen block) {
-    //
+    // TODO: nested function!
+    // create function declaraction
+    std::vector<llvm::Type *> args_type(args.size(), builder_.getInt32Ty());
+    auto func_type = llvm::FunctionType::get(builder_.getInt32Ty(),
+            args_type, false);
+    auto func = llvm::Function::Create(func_type,
+            llvm::Function::ExternalLinkage, NewFunName(id), module_.get());
+    // store information of current function
+    cur_func_.push(func);
+    values_->AddValue(id, func);
+    NewTable();
+    // generate arguments and return value
+    llvm::Value *ret = nullptr;
+    gen_func_args_.push([this, func, &args, &id, &ret]() {
+        auto it = args.begin();
+        for (auto &&arg : func->args()) {
+            auto alloca = CreateAlloca(func);
+            builder_.CreateStore(&arg, alloca);
+            values_->AddValue(*it, alloca);
+            ++it;
+        }
+        ret = CreateAlloca(func);
+        builder_.CreateStore(builder_.getInt32(0), ret);
+        values_->AddValue(id + "_ret", ret);
+        return nullptr;
+    });
+    // generate block
+    block();
+    // generate return statement if not a function declare
+    if (ret) builder_.CreateRet(builder_.CreateLoad(ret));
+    // remove current function info
+    cur_func_.pop();
+    RestoreTable();
+    gen_func_args_.pop();
+    // do optimize
+    OptimizeFunction(func);
     return nullptr;
 }
 
 IRPtr LLVMIRBuilder::GenerateAssign(const std::string &id,
-        const IRPtr &expr) {
-    //
+        const IRPtr &expr, SymbolType type) {
+    llvm::Value *ptr = nullptr;
+    if (type == SymbolType::Ret) {
+        ptr = values_->GetValue(id + "_ret");
+    }
+    else {
+        ptr = values_->GetValue(id);
+    }
+    assert(ptr);
+    builder_.CreateStore(GetValue(expr), ptr);
     return nullptr;
 }
 
@@ -122,12 +203,12 @@ IRPtr LLVMIRBuilder::GenerateIf(const IRPtr &cond, LazyIRGen then,
     builder_.CreateCondBr(GetValue(cond), then_block, else_block);
     // emit 'then' block
     builder_.SetInsertPoint(then_block);
-    then();
+    if (then) then();
     builder_.CreateBr(merge_block);
     // emit 'else' block
     cur_func->getBasicBlockList().push_back(else_block);
     builder_.SetInsertPoint(else_block);
-    else_then();
+    if (else_then) else_then();
     builder_.CreateBr(merge_block);
     // emit merge block
     cur_func->getBasicBlockList().push_back(merge_block);
@@ -143,6 +224,8 @@ IRPtr LLVMIRBuilder::GenerateWhile(LazyIRGen cond, LazyIRGen body) {
     auto end_block = llvm::BasicBlock::Create(context_);
     // add to break/continue stack
     break_cont_.push({end_block, cond_block});
+    // create direct branch
+    builder_.CreateBr(cond_block);
     // emit 'cond' block
     builder_.SetInsertPoint(cond_block);
     auto cond_expr = GetValue(cond());
@@ -150,7 +233,7 @@ IRPtr LLVMIRBuilder::GenerateWhile(LazyIRGen cond, LazyIRGen body) {
     // emit 'body' block
     cur_func->getBasicBlockList().push_back(body_block);
     builder_.SetInsertPoint(body_block);
-    body();
+    if (body) body();
     builder_.CreateBr(cond_block);
     // emit 'end' block
     cur_func->getBasicBlockList().push_back(end_block);
@@ -207,7 +290,7 @@ IRPtr LLVMIRBuilder::GenerateBinary(Lexer::Operator op,
 IRPtr LLVMIRBuilder::GenerateFunCall(const std::string &id,
         const IRPtrList &args) {
     // get function from module
-    auto callee = module_->getFunction(id);
+    auto callee = values_->GetValue(id);
     assert(callee);
     // get value list
     std::vector<llvm::Value *> values;
@@ -218,9 +301,16 @@ IRPtr LLVMIRBuilder::GenerateFunCall(const std::string &id,
     return MakeIR(builder_.CreateCall(callee, values));
 }
 
-IRPtr LLVMIRBuilder::GenerateId(const std::string &id) {
-    //
-    return nullptr;
+IRPtr LLVMIRBuilder::GenerateId(const std::string &id, SymbolType type) {
+    if (type == SymbolType::Proc || type == SymbolType::Func
+            || type == SymbolType::Ret) {
+        return GenerateFunCall(id, {});
+    }
+    else {
+        auto value = values_->GetValue(id);
+        assert(value);
+        return MakeIR(builder_.CreateLoad(value));
+    }
 }
 
 IRPtr LLVMIRBuilder::GenerateNumber(int value) {
