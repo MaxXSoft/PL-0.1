@@ -366,7 +366,8 @@ IRPtr LLVMIRBuilder::GenerateId(const std::string &id, SymbolType type) {
     else {
         auto value = values_->GetValue(id);
         assert(value);
-        return MakeIR(builder_.CreateLoad(value));
+        if (type == SymbolType::Var) value = builder_.CreateLoad(value);
+        return MakeIR(value);
     }
 }
 
