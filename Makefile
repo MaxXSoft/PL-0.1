@@ -1,10 +1,7 @@
 # external parameters
 export DEBUG = 1
-export OPT_LEVEL = 1
+export OPT_LEVEL = 3
 export LLVM_DIR = /usr/local/opt/llvm
-
-# LLVM libraries
-include make/llvm.make
 
 # judge if is debug mode
 ifeq ($(DEBUG), 0)
@@ -24,7 +21,7 @@ TEST_OBJ_DIR = $(OBJ_DIR)/test
 SRC_DIR = $(TOP_DIR)/src
 TEST_DIR = $(TOP_DIR)/test
 INCLUDE_ARG := -I$(SRC_DIR)/inc -I$(TEST_DIR) -I$(LLVM_DIR)/include
-LIBRARY_ARG := -L$(LLVM_DIR)/lib $(LLVM_LIBS)
+LIBRARY_ARG := -L$(LLVM_DIR)/lib `$(LLVM_DIR)/bin/llvm-config --system-libs --libs all`
 
 # files
 PL01_OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(PL01_OBJ_DIR)/%.o, $(wildcard $(SRC_DIR)/*.cpp))
