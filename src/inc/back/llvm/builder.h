@@ -18,6 +18,7 @@
 
 #include <back/irbuilder.h>
 #include <back/llvm/value.h>
+#include <back/llvm/rawstd.h>
 
 class LLVMIRBuilder : public IRBuilder {
 public:
@@ -52,7 +53,9 @@ public:
     IRPtr GenerateId(const std::string &id, SymbolType type) override;
     IRPtr GenerateNumber(int value) override;
 
-    void Dump() { module_->print(llvm::errs(), nullptr); }
+    void Dump(RawStdOStream &&os = std::cerr) {
+        module_->print(os, nullptr);
+    }
 
 private:
     // pair for storing target block of break & continue
