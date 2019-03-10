@@ -23,7 +23,7 @@ IRPtr ConstsAST::GenerateIR(IRBuilder &irb) {
 IRPtr VarsAST::GenerateIR(IRBuilder &irb) {
     for (const auto &i : defs_) {
         auto init = i.second ? i.second->GenerateIR(irb) : nullptr;
-        irb.GenerateConst(i.first, init);
+        irb.GenerateVar(i.first, init);
     }
     return nullptr;
 }
@@ -39,7 +39,9 @@ IRPtr FunctionAST::GenerateIR(IRBuilder &irb) {
 }
 
 IRPtr AssignAST::GenerateIR(IRBuilder &irb) {
-    return irb.GenerateAssign(id_, expr_->GenerateIR(irb));
+    auto info = env()->GetInfo(id_);
+    assert(info.type != SymbolType::Error);
+    return irb.GenerateAssign(id_, expr_->GenerateIR(irb), info.type);
 }
 
 IRPtr BeginEndAST::GenerateIR(IRBuilder &irb) {
@@ -90,7 +92,9 @@ IRPtr FunCallAST::GenerateIR(IRBuilder &irb) {
 }
 
 IRPtr IdAST::GenerateIR(IRBuilder &irb) {
-    return irb.GenerateId(id_);
+    auto info = env()->GetInfo(id_);
+    assert(info.type != SymbolType::Error);
+    return irb.GenerateId(id_, info.type);
 }
 
 IRPtr NumberAST::GenerateIR(IRBuilder &irb) {
