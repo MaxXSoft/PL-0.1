@@ -1,0 +1,7 @@
+Function Quit(num);;
+Function GetArgCount;;
+Function GetArgValue(i);;
+Function Randomize(seed);;
+Function GetRand;;
+Function Timestamp;;
+.
