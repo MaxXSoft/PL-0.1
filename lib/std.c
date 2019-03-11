@@ -24,13 +24,13 @@ int println(int str) {
 // getchar
 // putchar
 
-int getfloat() {
+int getreal() {
     float f;
     return scanf("%f", &f) == EOF ? -1 : *(unsigned *)&f;
 }
 
-int putfloat(int f) {
-    float f = *(float *)&f;
+int putreal(int r) {
+    float f = *(float *)&r;
     return printf("%f", f);
 }
 
