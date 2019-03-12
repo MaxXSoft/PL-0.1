@@ -1,6 +1,6 @@
-#include <lib/util/pool.h>
+#include <util/pool.h>
 
-const int kPoolInitSize = 32;
+static const int kPoolInitSize = 32;
 
 typedef struct PoolIdListProto {
     PoolId id;

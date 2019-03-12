@@ -6,7 +6,7 @@
 #include <crt_externs.h>
 #endif
 
-#include <lib/util/pool.h>
+#include <util/pool.h>
 
 static int argc = -1;
 static PoolId *p_argv = NULL;

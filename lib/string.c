@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <lib/util/pool.h>
+#include <util/pool.h>
 
 // NOTE: a stupid implementation of variable length string
 
@@ -29,7 +29,7 @@ int setstringpos(int str, int pos, int c) {
     PoolUnit *unit = PoolAccessUnit(str);
     assert(unit);
     if (pos < unit->size) {
-        ((char *)unit->size)[pos] = c;
+        ((char *)unit->ptr)[pos] = c;
         return 0;
     }
     else {

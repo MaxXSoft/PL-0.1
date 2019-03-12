@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include <lib/util/pool.h>
+#include <util/pool.h>
 
 // standard I/O in global pool
 static PoolId p_stdin = 0, p_stdout = 0, p_stderr = 0;
@@ -113,7 +113,8 @@ int writechar(int file, int c) {
 int readstring(int file, int str, int num) {
     PoolUnit *f = PoolAccessUnit(file), *s = PoolAccessUnit(str);
     assert(f && f->size == sizeof(FILE) && s);
-    return fgets((char *)s->ptr, num, (FILE *)f->ptr);
+    fgets((char *)s->ptr, num, (FILE *)f->ptr);
+    return 0;
 }
 
 int writestring(int file, int str) {
