@@ -1,6 +1,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <lib/util/pool.h>
 
@@ -95,4 +96,33 @@ int stringassign(int dest, int src) {
     // cpoy string
     strcpy(s1->ptr, s2->ptr);
     return dest;
+}
+
+int stringtoint(int str) {
+    PoolUnit *s = PoolAccessUnit(str);
+    assert(s);
+    return atoi(s->ptr);
+}
+
+int inttostring(int i) {
+    PoolUnit unit;
+    unit.ptr = malloc(16 * sizeof(char));
+    sprintf(unit.ptr, "%d", i);
+    unit.size = strlen(unit.ptr);
+    return PoolAllocaUnit(unit);
+}
+
+int stringtoreal(int str) {
+    PoolUnit *s = PoolAccessUnit(str);
+    assert(s);
+    float r = atof(s->ptr);
+    return *(unsigned *)&r;
+}
+
+int realtostring(int r) {
+    PoolUnit unit;
+    unit.ptr = malloc(64 * sizeof(char));
+    sprintf(unit.ptr, "%f", *(float *)&r);
+    unit.size = strlen(unit.ptr);
+    return PoolAllocaUnit(unit);
 }

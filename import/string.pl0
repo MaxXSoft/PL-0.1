@@ -7,4 +7,8 @@ Function StringAdd(str1, str2);;
 Function StringConcat(dest, src);;
 Function StringCompare(str1, str2);;
 Function StringAssign(dest, src);;
+Function StringToInt(str);;
+Function IntToString(i);;
+Function StringToReal(str);;
+Function RealToString(r);;
 .
