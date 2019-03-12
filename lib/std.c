@@ -1,4 +1,21 @@
 #include <stdio.h>
+#include <assert.h>
+
+#include <lib/util/pool.h>
+
+// standard I/O in global pool
+static PoolId p_stdin = 0, p_stdout = 0, p_stderr = 0;
+
+static void InitializeStdPtr() {
+    PoolUnit unit;
+    unit.size = sizeof(FILE);
+    unit.ptr = stdin;
+    p_stdin = PoolAllocaUnit(unit);
+    unit.ptr = stdout;
+    p_stdout = PoolAllocaUnit(unit);
+    unit.ptr = stderr;
+    p_stderr = PoolAllocaUnit(unit);
+}
 
 int read() {
     int i;
@@ -14,11 +31,15 @@ int writeln(int i) {
 }
 
 int print(int str) {
-    return printf("%s", str);
+    PoolUnit *unit = PoolAccessUnit(str);
+    assert(unit);
+    return printf("%s", unit->ptr);
 }
 
 int println(int str) {
-    return puts((char *)str);
+    PoolUnit *unit = PoolAccessUnit(str);
+    assert(unit);
+    return puts((char *)unit->ptr);
 }
 
 // getchar
@@ -35,56 +56,82 @@ int putreal(int r) {
 }
 
 int getstd(int fd) {
+    if (p_stdin == p_stdout && p_stdout == p_stderr) InitializeStdPtr();
     switch (fd) {
-        case 0: return (int)stdin;
-        case 1: return (int)stdout;
-        case 2: return (int)stderr;
+        case 0: return p_stdin;
+        case 1: return p_stdout;
+        case 2: return p_stderr;
         default: return -1;
     }
 }
 
 int flush(int file) {
-    return fflush((FILE *)file);
+    PoolUnit *unit = PoolAccessUnit(file);
+    assert(unit && unit->size == sizeof(FILE));
+    return fflush((FILE *)unit->ptr);
 }
 
 int open(int filename, int mode) {
-    return (int)fopen((char *)filename, (char *)mode);
+    PoolUnit *fn = PoolAccessUnit(filename), *md = PoolAccessUnit(mode);
+    assert(fn && md);
+    PoolUnit unit;
+    unit.ptr = fopen((char *)fn->ptr, (char *)md->ptr);
+    unit.size = sizeof(FILE);
+    return PoolAllocaUnit(unit);
 }
 
 int close(int file) {
-    return fclose((FILE *)file);
+    PoolUnit *unit = PoolAccessUnit(file);
+    assert(unit && unit->size == sizeof(FILE));
+    return fclose((FILE *)unit->ptr);
 }
 
 int readfile(int file, int buf, int size, int count) {
-    return fread((void *)buf, size, count, (FILE *)file);
+    PoolUnit *f = PoolAccessUnit(file), *bf = PoolAccessUnit(buf);
+    assert(f && f->size == sizeof(FILE) && bf);
+    return fread(bf->ptr, size, count, (FILE *)f->ptr);
 }
 
 int writefile(int file, int buf, int size, int count) {
-    return fwrite((void *)buf, size, count, (FILE *)file);
+    PoolUnit *f = PoolAccessUnit(file), *bf = PoolAccessUnit(buf);
+    assert(f && f->size == sizeof(FILE) && bf);
+    return fwrite(bf->ptr, size, count, (FILE *)f->ptr);
 }
 
 int readchar(int file) {
-    return fgetc((FILE *)file);
+    PoolUnit *unit = PoolAccessUnit(file);
+    assert(unit && unit->size == sizeof(FILE));
+    return fgetc((FILE *)unit->ptr);
 }
 
 int writechar(int file, int c) {
-    return fputc(c, (FILE *)file);
+    PoolUnit *unit = PoolAccessUnit(file);
+    assert(unit && unit->size == sizeof(FILE));
+    return fputc(c, (FILE *)unit->ptr);
 }
 
 int readstring(int file, int str, int num) {
-    return fgets((char *)str, num, (FILE *)file);
+    PoolUnit *f = PoolAccessUnit(file), *s = PoolAccessUnit(str);
+    assert(f && f->size == sizeof(FILE) && s);
+    return fgets((char *)s->ptr, num, (FILE *)f->ptr);
 }
 
 int writestring(int file, int str) {
-    return fputs((char *)str, (FILE *)file);
+    PoolUnit *f = PoolAccessUnit(file), *s = PoolAccessUnit(str);
+    assert(f && f->size == sizeof(FILE) && s);
+    return fputs((char *)s->ptr, (FILE *)f->ptr);
 }
 
 int tell(int file) {
-    return ftell((FILE *)file);
+    PoolUnit *unit = PoolAccessUnit(file);
+    assert(unit && unit->size == sizeof(FILE));
+    return ftell((FILE *)unit->ptr);
 }
 
 int seek(int file, int offset, int mode) {
-    return fseek((FILE *)file, offset, mode);
+    PoolUnit *unit = PoolAccessUnit(file);
+    assert(unit && unit->size == sizeof(FILE));
+    return fseek((FILE *)unit->ptr, offset, mode);
 }
 
 int and(int l, int r) {
