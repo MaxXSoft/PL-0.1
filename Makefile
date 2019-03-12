@@ -34,6 +34,7 @@ TEST_OBJS += $(patsubst $(TEST_DIR)/%.cpp, $(TEST_OBJ_DIR)/%.o, $(wildcard $(TES
 TEST_OBJS += $(filter-out $(PL01_OBJ_DIR)/main.o, $(PL01_OBJS))
 LIB_OBJS := $(patsubst $(LIB_DIR)/%.c, $(LIB_OBJ_DIR)/%.o, $(wildcard $(LIB_DIR)/*.c))
 LIB_OBJS += $(patsubst $(LIB_DIR)/%.c, $(LIB_OBJ_DIR)/%.o, $(wildcard $(LIB_DIR)/**/*.c))
+TEST_OBJS += $(LIB_OBJS)
 PL01_TARGET := $(TARGET_DIR)/pl01
 TEST_TARGET := $(TARGET_DIR)/test
 LIB_TARGET := $(TARGET_DIR)/libpl01rt.a
