@@ -1,0 +1,14 @@
+Function NewArray;;
+Function FreeArray(arr);;
+Function GetArrayPos(arr, pos);;
+Function SetArrayPos(arr, pos, value);;
+Function ArrayFront(arr);;
+Function ArrayBack(arr);;
+Function ArrayEmpty(arr);;
+Function ArrayLen(arr);;
+Function ArrayCapacity(arr);;
+Function ArrayClear(arr);;
+Function ArrayPush(arr, value);;
+Function ArrayPop(arr);;
+Function ArrayResize(arr, size);;
+.
