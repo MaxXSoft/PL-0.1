@@ -1,12 +1,15 @@
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #ifdef __APPLE__
 #include <crt_externs.h>
 #endif
 
+#include <lib/util/pool.h>
+
 static int argc = -1;
-static char **argv = NULL;
+static PoolId *p_argv = NULL;
 
 static int InitCommandLineArgs() {
 #ifdef __APPLE__
@@ -18,10 +21,13 @@ static int InitCommandLineArgs() {
     char ***pargv = _NSGetArgv();
     if (!pargv) return -1;
     // allocate spaces
-    argv = (char **)malloc(sizeof(char *) * argc);
-    if (!argv) return -1;
+    p_argv = (PoolId *)malloc(argc * sizeof(PoolId));
+    if (!p_argv) return -1;
+    PoolUnit unit;
     for (int i = 0; i < argc; ++i) {
-        argv[i] = (*pargv)[i];
+        unit.ptr = (*pargv)[i];
+        unit.size = strlen(unit.ptr);
+        p_argv[i] = PoolAllocaUnit(unit);
     }
     return 0;
 #else
@@ -40,11 +46,11 @@ int getargcount() {
 }
 
 int getargvalue(int i) {
-    if (argv || InitCommandLineArgs() >= 0) {
-        return (int)argv[i];
+    if (p_argv || InitCommandLineArgs() >= 0) {
+        return p_argv[i];
     }
     else {
-        return 0;
+        return -1;
     }
 }
 
