@@ -11,10 +11,14 @@ int newstring(int size) {
     PoolUnit unit;
     unit.ptr = malloc((size + 1) * sizeof(char));   // '\0'
     unit.size = size;
+    ((char *)unit.ptr)[size] = '\0';
     return PoolAllocaUnit(unit);
 }
 
 int freestring(int str) {
+    PoolUnit *unit = PoolAccessUnit(str);
+    assert(unit);
+    free(unit->ptr);
     PoolFreeUnit(str);
     return 0;
 }
@@ -38,6 +42,12 @@ int setstringpos(int str, int pos, int c) {
 }
 
 int stringlen(int str) {
+    PoolUnit *unit = PoolAccessUnit(str);
+    assert(unit);
+    return strlen(unit->ptr);
+}
+
+int stringmemlen(int str) {
     PoolUnit *unit = PoolAccessUnit(str);
     assert(unit);
     return unit->size;

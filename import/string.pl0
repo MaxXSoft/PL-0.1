@@ -3,6 +3,7 @@ Function FreeString(str);;
 Function GetStringPos(str, pos);;
 Function SetStringPos(str, pos, c);;
 Function StringLen(str);;
+Function StringMemLen(str);;
 Function StringAdd(str1, str2);;
 Function StringConcat(dest, src);;
 Function StringCompare(str1, str2);;
