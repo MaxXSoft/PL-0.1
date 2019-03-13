@@ -102,7 +102,7 @@ int arraypush(int arr, int value) {
     if (a->len > a->buffer_size) {
         // need to reallocate memory
         a->buffer_size *= 2;
-        void *ptr = realloc(a->ptr, a->buffer_size);
+        void *ptr = realloc(a->ptr, a->buffer_size * sizeof(int));
         if (!ptr) {
             free(a->ptr);
             abort();
@@ -133,7 +133,7 @@ int arrayresize(int arr, int size) {
     // need to reallocate memory
     if (a->len > a->buffer_size) {
         a->buffer_size = a->len * 2;
-        void *ptr = realloc(a->ptr, a->buffer_size);
+        void *ptr = realloc(a->ptr, a->buffer_size * sizeof(int));
         if (!ptr) {
             free(a->ptr);
             abort();
