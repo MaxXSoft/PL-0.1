@@ -25,6 +25,7 @@ int freestring(int str);
 int getstringpos(int str, int pos);
 int setstringpos(int str, int pos, int c);
 int stringlen(int str);
+int stringmemlen(int str);
 int stringadd(int str1, int str2);
 int stringconcat(int dest, int src);
 int stringcompare(int str1, int str2);
