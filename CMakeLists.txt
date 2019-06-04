@@ -49,13 +49,22 @@ file(GLOB_RECURSE TEST_SRC "test/*.cpp")
 # PL/0.1 runtime library source files
 file(GLOB_RECURSE LIB_SRC "lib/*.c")
 
+# compiler course design
+set(LAB_SRC1 "lab/lexer_test.cpp")
+set(LAB_SRC2 "lab/highlight.cpp")
+set(LAB_SRC3 "lab/parser_test.cpp")
+
 # create executable files
 add_executable(pl01 ${PL01_SRC})
 add_executable(test ${BASIC_SRC} ${TEST_SRC})
 add_library(pl01rt ${LIB_SRC})
+add_executable(lexer_test "src/front/lexer.cpp" ${LAB_SRC1})
+add_executable(highlight "src/front/lexer.cpp" ${LAB_SRC2})
+add_executable(parser_test ${BASIC_SRC} ${LAB_SRC3})
 
 # find LLVM libraries & link
 llvm_map_components_to_libnames(LLVM_LIBS all)
 target_link_libraries(pl01 ${LLVM_LIBS})
 target_link_libraries(test ${LLVM_LIBS})
 target_link_libraries(test pl01rt)
+target_link_libraries(parser_test ${LLVM_LIBS})
