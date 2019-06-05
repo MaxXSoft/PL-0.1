@@ -23,7 +23,7 @@ void LexerTest() {
     iss.str("");
     iss.clear();
     TEST_EXPECT(EnumCast(Token::End), EnumCast(lexer.NextToken()));
-    iss.str("const a01 = 100, bAAb = $66;\n\n { comment }");
+    iss.str("const a01 = 100, bAAb = $066;\n\n { comment }");
     iss.clear();
     lexer.Reset();
     TEST_EXPECT(EnumCast(Token::Keyword), EnumCast(lexer.NextToken()));
