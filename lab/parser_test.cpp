@@ -10,6 +10,6 @@ int main(int argc, const char *argv[]) {
     Lexer lexer(ifs);
     Parser parser(lexer);
     auto ast = parser.ParseProgram();
-    ast->Dump();
+    if (ast) ast->Dump();
     return 0;
 }
