@@ -58,6 +58,7 @@ void ConstsAST::Dump(std::ostream &os) {
 }
 
 void VarsAST::Dump(std::ostream &os) {
+    ++in_expr;
     for (const auto &i : defs_) {
         os << indent << i.first;
         if (i.second) {
@@ -66,6 +67,7 @@ void VarsAST::Dump(std::ostream &os) {
         }
         os << std::endl;
     }
+    --in_expr;
 }
 
 void ProcedureAST::Dump(std::ostream &os) {

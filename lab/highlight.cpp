@@ -49,8 +49,8 @@ int main(int argc, const char *argv[]) {
     for (;;) {
         auto tok = lexer.NextToken();
         if (lexer.line_pos() != last_line) {
+            if (last_line) cout << endl;
             last_line = lexer.line_pos();
-            cout << endl;
             cout << setw(5) << left << last_line;
         }
         switch (tok) {
